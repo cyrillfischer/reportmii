@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------
+   🌍 GLOBAL RESET – ultra clean (Apple / Linear Style)
+------------------------------------------------------- */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #212121;
+  background-color: #ffffff; /* Hero bleibt bewusst weiß */
+  scroll-behavior: smooth;
+}
+
+body {
+  line-height: 1.6;
+}
+
+/* Entfernt blaue Ränder */
+input,
+button,
+textarea,
+select {
+  outline: none;
+}
+
+/* ------------------------------------------------------
+   ✨ TYPOGRAFIE – clean, ruhig, premium
+------------------------------------------------------- */
+h1,
+.h1 {
+  @apply text-4xl md:text-6xl font-semibold tracking-tight text-gray-900;
+}
+
+h2,
+.h2 {
+  @apply text-3xl md:text-4xl font-semibold tracking-tight text-gray-900;
+}
+
+h3,
+.h3 {
+  @apply text-2xl md:text-3xl font-semibold tracking-tight text-gray-900;
+}
+
+p {
+  @apply text-gray-700 leading-relaxed;
+}
+
+/* ------------------------------------------------------
+   📦 SECTION SPACING – viel Weißraum, Premium-Feeling
+------------------------------------------------------- */
+.section {
+  @apply py-24 md:py-32;
+}
+
+.section-sm {
+  @apply py-12 md:py-16;
+}
+
+.section-lg {
+  @apply py-32 md:py-40;
+}
+
+/* ------------------------------------------------------
+   📐 CONTAINER – sauber zentriert wie Stripe / Linear
+------------------------------------------------------- */
+.container-default {
+  @apply max-w-7xl px-6 mx-auto;
+}
+
+/* ------------------------------------------------------
+   🎚 TRANSITIONS
+------------------------------------------------------- */
+a,
+button {
+  transition: all 0.25s ease;
+}
+
+/* ------------------------------------------------------
+   🔗 LINKS
+------------------------------------------------------- */
+a {
+  @apply text-gray-700;
+}
+a:hover {
+  @apply text-gray-900;
+}
+
+/* ------------------------------------------------------
+   🔥 CARD STYLE – neutral! (Hintergrund nicht erzwingen)
+------------------------------------------------------- */
+.card {
+  @apply rounded-2xl p-6 shadow-soft border border-gray-200;
+  background-color: inherit !important; /* verhindert weißes Überschreiben! */
+}
+
+/* ------------------------------------------------------
+   🧪 INPUTS – modern & clean
+------------------------------------------------------- */
+input,
+textarea,
+select {
+  @apply w-full px-4 py-3 rounded-lg border border-gray-300
+         bg-white text-gray-900 shadow-soft
+         focus:border-mint-500 focus:ring-2 focus:ring-mint-200;
+}
+
+/* ------------------------------------------------------
+   🧭 NAVBAR UNDERLINE
+------------------------------------------------------- */
+.nav-link {
+  @apply relative text-gray-700 font-medium cursor-pointer;
+}
+
+.nav-link::after {
+  content: "";
+  @apply absolute left-0 right-0 bottom-0 h-[2px] bg-mint-500 scale-x-0 origin-left transition-transform duration-200;
+}
+
+.nav-link:hover::after {
+  @apply scale-x-100;
+}
+
+/* ------------------------------------------------------
+   🪄 SMOOTH FADES
+------------------------------------------------------- */
+.fade-in {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.5s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
