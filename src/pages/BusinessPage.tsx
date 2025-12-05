@@ -175,7 +175,7 @@ export default function BusinessPage() {
         viewport={{ once: true }}
         className="mt-6 text-lg sm:text-xl leading-relaxed text-gray-600 font-light"
       >
-        Erhalte in weniger als <strong className="text-gray-900">30 Minuten</strong>
+        Erhalte in weniger als <strong className="text-gray-900">60 Minuten </strong>
         eine klare, datenbasierte Bewertung deines Unternehmens —
         visualisiert, objektiv und ohne Berater.
       </motion.p>
