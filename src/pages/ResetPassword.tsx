@@ -2,17 +2,16 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
-import { Header } from "../components/Header";
 import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [done, setDone] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [verifying, setVerifying] = useState(true); // Link wird geprüft
+  const [verifying, setVerifying] = useState(true);
 
   // -----------------------------------------------------
-  // 1) Token + Email aus URL lesen und Session erzeugen
+  // 1) Token + Email prüfen
   // -----------------------------------------------------
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -20,7 +19,8 @@ export default function ResetPassword() {
     const type = params.get("type");
     const email = params.get("email");
 
-    // Erwartet: ?token=...&type=recovery&email=...
+    console.log("URL-Parameter:", { token, type, email });
+
     if (!token || type !== "recovery" || !email) {
       setErrorMsg("Der Passwort-Link ist ungültig oder unvollständig.");
       setVerifying(false);
@@ -41,7 +41,6 @@ export default function ResetPassword() {
         return;
       }
 
-      // Jetzt existiert eine gültige Session ✔
       setVerifying(false);
     };
 
@@ -52,7 +51,7 @@ export default function ResetPassword() {
   // 2) Neues Passwort setzen
   // -----------------------------------------------------
   const handleReset = async () => {
-    if (verifying) return; // Sicherheit: erst nach verifyOtp erlauben
+    if (verifying) return;
     setErrorMsg("");
 
     const { error } = await supabase.auth.updateUser({ password });
@@ -67,18 +66,19 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-white text-gray-900">
 
       {/* ========================== */}
-      {/* 🖤 HERO */}
+      {/* 🔥 KEIN HEADER HIER! */}
       {/* ========================== */}
+
+      {/* HERO */}
       <section className="pt-40 pb-24 text-center bg-black text-white">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-5xl md:text-6xl font-semibold mb-4 text-white"
+          className="text-5xl md:text-6xl font-semibold mb-4"
         >
           Neues Passwort setzen
         </motion.h1>
@@ -88,15 +88,10 @@ export default function ResetPassword() {
         </p>
       </section>
 
-      {/* ========================== */}
-      {/* 🔐 CONTENT */}
-      {/* ========================== */}
+      {/* CONTENT */}
       <section className="py-24 px-6">
         <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
 
-          {/* ========================== */}
-          {/* 🎉 SUCCESS */}
-          {/* ========================== */}
           {done ? (
             <div className="text-center">
               <Lock size={48} className="mx-auto mb-4 text-[#7eb6b8]" />
@@ -113,9 +108,6 @@ export default function ResetPassword() {
             </div>
           ) : (
             <>
-              {/* ========================== */}
-              {/* ✏ Password Input */}
-              {/* ========================== */}
               <label className="block text-left mb-8">
                 <span className="text-gray-700 font-medium flex items-center gap-2">
                   <Lock size={20} className="text-[#7eb6b8]" />
@@ -135,25 +127,18 @@ export default function ResetPassword() {
                 />
               </label>
 
-              {/* Hinweis, während der Link geprüft wird */}
               {verifying && (
                 <p className="text-center text-gray-500 mb-4 text-sm">
                   Link wird geprüft …
                 </p>
               )}
 
-              {/* ========================== */}
-              {/* ⚠ Fehler */}
-              {/* ========================== */}
               {errorMsg && (
                 <p className="text-red-500 text-center mb-4 font-medium">
                   {errorMsg}
                 </p>
               )}
 
-              {/* ========================== */}
-              {/* 🚀 Button */}
-              {/* ========================== */}
               <button
                 onClick={handleReset}
                 disabled={verifying}
@@ -169,6 +154,10 @@ export default function ResetPassword() {
           )}
         </div>
       </section>
+
+      {/* ========================== */}
+      {/* 🔥 KEIN FOOTER HIER! */}
+      {/* ========================== */}
     </div>
   );
 }
