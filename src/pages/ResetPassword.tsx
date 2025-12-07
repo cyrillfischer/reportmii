@@ -11,34 +11,46 @@ export default function ResetPassword() {
   const [verifying, setVerifying] = useState(true);
 
   useEffect(() => {
-    // -----------------------------
-    // 1) Token aus Query oder Hash lesen
-    // -----------------------------
+    // -----------------------------------------------
+    // 1) Token + Email aus URL oder Hash extrahieren
+    // -----------------------------------------------
     const params = new URLSearchParams(window.location.search);
 
-    let token = params.get("token");
+    let token =
+      params.get("token") ||
+      params.get("token_hash"); // fallback – falls ältere Links
+
     const type = params.get("type");
     const email = params.get("email");
 
-    // 🔥 Supabase liefert Token oft im HASH, z.B. #access_token=xxxx
+    // 🔥 Manche Provider liefern Token im URL-Hash (#)
     if (!token) {
-      const hashParams = new URLSearchParams(window.location.hash.replace("#", ""));
-      token = hashParams.get("access_token") || hashParams.get("__token") || hashParams.get("token_hash");
+      const hashParams = new URLSearchParams(
+        window.location.hash.replace("#", "")
+      );
+      token =
+        hashParams.get("access_token") ||
+        hashParams.get("token") ||
+        hashParams.get("token_hash");
     }
 
     console.log("Token gefunden:", token);
 
+    // Wenn etwas fehlt → Fehler
     if (!token || type !== "recovery" || !email) {
       setErrorMsg("Der Passwort-Link ist ungültig oder unvollständig.");
       setVerifying(false);
       return;
     }
 
+    // -----------------------------------------------
+    // 2) Token bei Supabase verifizieren
+    // -----------------------------------------------
     const verify = async () => {
       const { error } = await supabase.auth.verifyOtp({
         type: "recovery",
-        token,
-        email,
+        token: token,
+        email: email,
       });
 
       if (error) {
@@ -54,12 +66,18 @@ export default function ResetPassword() {
     verify();
   }, []);
 
+  // -----------------------------------------------
+  // 3) Passwort speichern
+  // -----------------------------------------------
   const handleReset = async () => {
     if (verifying) return;
 
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await supabase.auth.updateUser({
+      password: password,
+    });
 
     if (error) {
+      console.error(error);
       setErrorMsg("Fehler beim Speichern des Passworts.");
       return;
     }
@@ -85,7 +103,6 @@ export default function ResetPassword() {
 
       <section className="py-24 px-6">
         <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
-
           {done ? (
             <div className="text-center">
               <Lock size={48} className="mx-auto mb-4 text-[#7eb6b8]" />
@@ -121,7 +138,9 @@ export default function ResetPassword() {
               )}
 
               {verifying && (
-                <p className="text-gray-500 text-center mb-4">Link wird geprüft…</p>
+                <p className="text-gray-500 text-center mb-4">
+                  Link wird geprüft…
+                </p>
               )}
 
               <button
