@@ -3,8 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import { Button } from "../components/Button";
-import { VideoModal } from "../components/VideoModal";
+import VideoModal from "../components/VideoModal";
 import { AnimatedShapesBusiness } from "../components/AnimatedShapesBusiness";
 
 function ScrollRotateIcon({ iconSrc, className = "" }: { iconSrc: string; className?: string }) {

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { Button } from "../components/Button";
-import { VideoModal } from "../components/VideoModal";
+import VideoModal from "../components/VideoModal";
 import { AnimatedShapesInside } from "../components/AnimatedShapesInside";
 
 function IconRotateCard({ item, index }: { item: any; index: number }) {

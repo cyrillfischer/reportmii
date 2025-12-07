@@ -2,7 +2,14 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
-export function VideoModal({ isOpen, onClose, videoSrc }) {
+type VideoModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  videoSrc: string;
+};
+
+export default function VideoModal({ isOpen, onClose, videoSrc }: VideoModalProps) {
+
   return (
     <AnimatePresence>
       {isOpen && (

@@ -11,16 +11,31 @@ export default function ResetPassword() {
   const [verifying, setVerifying] = useState(true);
 
   // -----------------------------------------------------
-  // 1) Token + Email prüfen
+  // 1) Token + Email auslesen (NEU: universeller Parser)
   // -----------------------------------------------------
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    const type = params.get("type");
-    const email = params.get("email");
+    const query = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.replace("#", ""));
 
-    console.log("URL-Parameter:", { token, type, email });
+    // Supabase NEW format (?token=...)
+    // Supabase OLD format (?access_token=...)
+    // Legacy Hash format (#access_token=...)
+    const token =
+      query.get("token") ||
+      query.get("access_token") ||
+      hash.get("access_token");
 
+    const type =
+      query.get("type") ||
+      hash.get("type");
+
+    const email =
+      query.get("email") ||
+      hash.get("email");
+
+    console.log("Token:", token, "Type:", type, "Email:", email);
+
+    // Wenn etwas fehlt → Fehler
     if (!token || type !== "recovery" || !email) {
       setErrorMsg("Der Passwort-Link ist ungültig oder unvollständig.");
       setVerifying(false);
@@ -48,7 +63,7 @@ export default function ResetPassword() {
   }, []);
 
   // -----------------------------------------------------
-  // 2) Neues Passwort setzen
+  // 2) Neues Passwort speichern
   // -----------------------------------------------------
   const handleReset = async () => {
     if (verifying) return;
@@ -68,9 +83,7 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-900">
 
-      {/* ========================== */}
-      {/* 🔥 KEIN HEADER HIER! */}
-      {/* ========================== */}
+      {/* Kein Header hier */}
 
       {/* HERO */}
       <section className="pt-40 pb-24 text-center bg-black text-white">
@@ -92,6 +105,7 @@ export default function ResetPassword() {
       <section className="py-24 px-6">
         <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
 
+          {/* SUCCESS */}
           {done ? (
             <div className="text-center">
               <Lock size={48} className="mx-auto mb-4 text-[#7eb6b8]" />
@@ -127,18 +141,21 @@ export default function ResetPassword() {
                 />
               </label>
 
+              {/* INFO */}
               {verifying && (
                 <p className="text-center text-gray-500 mb-4 text-sm">
                   Link wird geprüft …
                 </p>
               )}
 
+              {/* ERROR */}
               {errorMsg && (
                 <p className="text-red-500 text-center mb-4 font-medium">
                   {errorMsg}
                 </p>
               )}
 
+              {/* BUTTON */}
               <button
                 onClick={handleReset}
                 disabled={verifying}
@@ -155,9 +172,7 @@ export default function ResetPassword() {
         </div>
       </section>
 
-      {/* ========================== */}
-      {/* 🔥 KEIN FOOTER HIER! */}
-      {/* ========================== */}
+      {/* Kein Footer */}
     </div>
   );
 }

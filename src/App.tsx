@@ -2,6 +2,9 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import { supabase } from "./supabase/supabaseClient"; // ✔ korrekt für dein Projekt
+
 // 🔐 Protected
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
@@ -31,7 +34,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 
-// 📊 Dashboards (NEU)
+// 📊 Dashboards
 import { DashboardOverview } from "./pages/business/DashboardOverview";
 import { DashboardAnalyses } from "./pages/business/DashboardAnalyses";
 import { DashboardAccount } from "./pages/business/DashboardAccount";
@@ -77,13 +80,33 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+
 // 🚀 ROOT APP
 export default function App() {
   const location = useLocation();
 
+  // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
+
+
+  // 🔥 Auto-Login Listener für Reset-Password / Invite / Magic Link
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      // das "_" ignoriert den ersten Parameter → kein Fehler
+      (_: AuthChangeEvent, session: Session | null) => {
+        if (session) {
+          window.location.href = "/dashboard/overview";
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
 
   return (
     <Routes>
