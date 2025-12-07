@@ -1,79 +1,21 @@
 // src/pages/ResetPassword.tsx
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Lock } from "lucide-react";
-import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
-  const [password, setPassword] = useState("");
-  const [done, setDone] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [verifying, setVerifying] = useState(true);
+  // Alles, was wir tun: URL auslesen und anzeigen
+  const searchParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace("#", ""));
 
-  useEffect(() => {
-    // -----------------------------
-    // 1) Token sauber auslesen (token_hash, token, access_token…)
-    // -----------------------------
-    const params = new URLSearchParams(window.location.search);
+  const queryToken = searchParams.get("token") || searchParams.get("token_hash");
+  const hashToken =
+    hashParams.get("access_token") ||
+    hashParams.get("__token") ||
+    hashParams.get("token") ||
+    hashParams.get("token_hash");
 
-    let token =
-      params.get("token_hash") ||
-      params.get("token") ||
-      null;
-
-    const type = params.get("type");
-    const email = params.get("email");
-
-    // Fallback: HASH (#access_token=…)
-    if (!token) {
-      const hashParams = new URLSearchParams(window.location.hash.replace("#", ""));
-      token =
-        hashParams.get("token_hash") ||
-        hashParams.get("access_token") ||
-        hashParams.get("__token") ||
-        null;
-    }
-
-    console.log("Token gefunden:", token);
-
-    if (!token || type !== "recovery" || !email) {
-      setErrorMsg("Der Passwort-Link ist ungültig oder unvollständig.");
-      setVerifying(false);
-      return;
-    }
-
-    const verify = async () => {
-      const { error } = await supabase.auth.verifyOtp({
-        type: "recovery",
-        token,
-        email,
-      });
-
-      if (error) {
-        console.error("verifyOtp error", error);
-        setErrorMsg("Der Passwort-Link ist abgelaufen oder ungültig.");
-        setVerifying(false);
-        return;
-      }
-
-      setVerifying(false);
-    };
-
-    verify();
-  }, []);
-
-  const handleReset = async () => {
-    if (verifying) return;
-
-    const { error } = await supabase.auth.updateUser({ password });
-
-    if (error) {
-      setErrorMsg("Fehler beim Speichern des Passworts.");
-      return;
-    }
-
-    setDone(true);
-  };
+  const token = queryToken || hashToken;
+  const type = searchParams.get("type");
+  const email = searchParams.get("email");
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-900">
@@ -84,67 +26,73 @@ export default function ResetPassword() {
           animate={{ opacity: 1, y: 0 }}
           className="text-5xl md:text-6xl font-semibold mb-4"
         >
-          Neues Passwort setzen
+          Debug: Reset Passwort
         </motion.h1>
 
         <p className="text-white/70 max-w-xl mx-auto text-lg">
-          Wähle ein neues, sicheres Passwort.
+          Diese Seite zeigt dir nur, was aus der URL gelesen wird.
+          Noch kein Supabase, keine Prüfung – nur Debug.
         </p>
       </section>
 
-      {/* FORMULAR */}
+      {/* DEBUG-BLOCK */}
       <section className="py-24 px-6">
-        <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
+        <div className="max-w-xl mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
+          <h2 className="text-2xl font-semibold mb-4 text-center">
+            URL-Parameter
+          </h2>
 
-          {done ? (
-            <div className="text-center">
-              <Lock size={48} className="mx-auto mb-4 text-[#7eb6b8]" />
-              <h2 className="text-2xl font-semibold mb-2">Passwort geändert!</h2>
-
-              <button
-                onClick={() => (window.location.href = "/login")}
-                className="mt-8 w-full bg-[#7eb6b8] text-black py-4 rounded-full text-lg hover:bg-black hover:text-white"
-              >
-                Weiter zum Login →
-              </button>
+          <div className="space-y-4 text-sm font-mono">
+            <div>
+              <span className="font-semibold">window.location.href:</span>
+              <div className="mt-1 break-all text-gray-700">
+                {window.location.href}
+              </div>
             </div>
-          ) : (
-            <>
-              <label className="block text-left mb-8">
-                <span className="text-gray-700 font-medium flex items-center gap-2">
-                  <Lock size={20} className="text-[#7eb6b8]" />
-                  Neues Passwort
-                </span>
 
-                <input
-                  type="password"
-                  className="mt-3 w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#7eb6b8]"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </label>
+            <div>
+              <span className="font-semibold">token (queryToken):</span>
+              <div className="mt-1 break-all text-blue-700">
+                {queryToken ?? "<null>"}
+              </div>
+            </div>
 
-              {errorMsg && (
-                <p className="text-red-500 text-center mb-4 font-medium">
-                  {errorMsg}
-                </p>
-              )}
+            <div>
+              <span className="font-semibold">token (hashToken):</span>
+              <div className="mt-1 break-all text-blue-700">
+                {hashToken ?? "<null>"}
+              </div>
+            </div>
 
-              {verifying && (
-                <p className="text-gray-500 text-center mb-4">Link wird geprüft…</p>
-              )}
+            <div>
+              <span className="font-semibold">token (final):</span>
+              <div className="mt-1 break-all text-green-700">
+                {token ?? "<null>"}
+              </div>
+            </div>
 
-              <button
-                onClick={handleReset}
-                disabled={verifying}
-                className={`w-full bg-[#7eb6b8] py-4 rounded-full text-lg font-semibold hover:bg-black hover:text-white ${
-                  verifying ? "opacity-60 cursor-not-allowed" : ""
-                }`}
-              >
-                Passwort speichern →
-              </button>
-            </>
-          )}
+            <div>
+              <span className="font-semibold">type:</span>
+              <div className="mt-1 text-purple-700">
+                {type ?? "<null>"}
+              </div>
+            </div>
+
+            <div>
+              <span className="font-semibold">email:</span>
+              <div className="mt-1 text-purple-700">
+                {email ?? "<null>"}
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-8 text-center text-gray-500 text-sm">
+            Wenn hier <code>token</code>, <code>type</code> und{" "}
+            <code>email</code> korrekt stehen, ist das Problem nicht
+            das Frontend-Auslesen, sondern die Supabase-Verifikation. <br />
+            Wenn <code>token</code> hier <code>{"<null>"}</code> ist,
+            kommt der Token gar nicht an.
+          </p>
         </div>
       </section>
     </div>
