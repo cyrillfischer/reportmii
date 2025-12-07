@@ -1,100 +1,95 @@
 // src/pages/ResetPassword.tsx
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { supabase } from "../supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 export default function ResetPassword() {
-  // Alles, was wir tun: URL auslesen und anzeigen
-  const searchParams = new URLSearchParams(window.location.search);
-  const hashParams = new URLSearchParams(window.location.hash.replace("#", ""));
+  const [password, setPassword] = useState("");
+  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+  const navigate = useNavigate();
 
-  const queryToken = searchParams.get("token") || searchParams.get("token_hash");
-  const hashToken =
-    hashParams.get("access_token") ||
-    hashParams.get("__token") ||
-    hashParams.get("token") ||
-    hashParams.get("token_hash");
+  // Token & params einlesen
+  const search = new URLSearchParams(window.location.search);
 
-  const token = queryToken || hashToken;
-  const type = searchParams.get("type");
-  const email = searchParams.get("email");
+  const token = search.get("token") || search.get("token_hash"); // beide Varianten unterstützt
+  const email = search.get("email");
+  const type = search.get("type");
+
+  // Token bei Supabase validieren
+  useEffect(() => {
+    async function verify() {
+      if (!token || !email || type !== "recovery") {
+        setTokenValid(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "recovery",
+      });
+
+      if (error) {
+        console.log("Supabase verify error:", error);
+        setTokenValid(false);
+      } else {
+        setTokenValid(true);
+      }
+    }
+
+    verify();
+  }, []);
+
+  async function savePassword() {
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
+
+    if (!error) {
+      navigate("/login");
+    }
+  }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-gray-900">
-      {/* HEADER */}
-      <section className="pt-40 pb-24 text-center bg-black text-white">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-5xl md:text-6xl font-semibold mb-4"
-        >
-          Debug: Reset Passwort
-        </motion.h1>
+    <div className="min-h-screen flex flex-col bg-white">
 
-        <p className="text-white/70 max-w-xl mx-auto text-lg">
-          Diese Seite zeigt dir nur, was aus der URL gelesen wird.
-          Noch kein Supabase, keine Prüfung – nur Debug.
-        </p>
+      <section className="pt-40 pb-20 text-center bg-black text-white">
+        <h1 className="text-5xl font-semibold">Neues Passwort setzen</h1>
+        <p className="text-white/70 mt-4">Wähle ein neues, sicheres Passwort.</p>
       </section>
 
-      {/* DEBUG-BLOCK */}
-      <section className="py-24 px-6">
-        <div className="max-w-xl mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
-          <h2 className="text-2xl font-semibold mb-4 text-center">
-            URL-Parameter
-          </h2>
+      <div className="max-w-xl mx-auto mt-12 bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
 
-          <div className="space-y-4 text-sm font-mono">
-            <div>
-              <span className="font-semibold">window.location.href:</span>
-              <div className="mt-1 break-all text-gray-700">
-                {window.location.href}
-              </div>
-            </div>
-
-            <div>
-              <span className="font-semibold">token (queryToken):</span>
-              <div className="mt-1 break-all text-blue-700">
-                {queryToken ?? "<null>"}
-              </div>
-            </div>
-
-            <div>
-              <span className="font-semibold">token (hashToken):</span>
-              <div className="mt-1 break-all text-blue-700">
-                {hashToken ?? "<null>"}
-              </div>
-            </div>
-
-            <div>
-              <span className="font-semibold">token (final):</span>
-              <div className="mt-1 break-all text-green-700">
-                {token ?? "<null>"}
-              </div>
-            </div>
-
-            <div>
-              <span className="font-semibold">type:</span>
-              <div className="mt-1 text-purple-700">
-                {type ?? "<null>"}
-              </div>
-            </div>
-
-            <div>
-              <span className="font-semibold">email:</span>
-              <div className="mt-1 text-purple-700">
-                {email ?? "<null>"}
-              </div>
-            </div>
-          </div>
-
-          <p className="mt-8 text-center text-gray-500 text-sm">
-            Wenn hier <code>token</code>, <code>type</code> und{" "}
-            <code>email</code> korrekt stehen, ist das Problem nicht
-            das Frontend-Auslesen, sondern die Supabase-Verifikation. <br />
-            Wenn <code>token</code> hier <code>{"<null>"}</code> ist,
-            kommt der Token gar nicht an.
+        {tokenValid === false && (
+          <p className="text-red-600 text-center mb-6">
+            Der Passwort-Link ist ungültig oder abgelaufen.
           </p>
-        </div>
-      </section>
+        )}
+
+        {tokenValid === true && (
+          <>
+            <label className="block mb-2 text-gray-700 font-medium">
+              Neues Passwort
+            </label>
+            <input
+              className="w-full px-4 py-3 border rounded-xl mb-6"
+              type="password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <button
+              onClick={savePassword}
+              className="w-full py-4 bg-[#7eb6b8] text-black font-semibold rounded-full"
+            >
+              Passwort speichern →
+            </button>
+          </>
+        )}
+
+        {tokenValid === null && (
+          <p className="text-center text-gray-500">Prüfe Link…</p>
+        )}
+      </div>
     </div>
   );
 }
