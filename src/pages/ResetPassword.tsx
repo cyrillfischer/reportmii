@@ -15,12 +15,15 @@ export default function ResetPassword() {
   // -----------------------------------------------------
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token_hash = params.get("token_hash");
+
+    // ❗ WICHTIG: Supabase sendet "token=", NICHT "token_hash"
+    const token = params.get("token");
+    const type = params.get("type");
     const email = params.get("email");
 
-    console.log("PARAMS:", Object.fromEntries(params.entries()));
+    console.log("URL-Parameter:", { token, type, email });
 
-    if (!token_hash || !email) {
+    if (!token || type !== "recovery" || !email) {
       setErrorMsg("Der Passwort-Link ist ungültig oder unvollständig.");
       setVerifying(false);
       return;
@@ -29,12 +32,12 @@ export default function ResetPassword() {
     const verify = async () => {
       const { error } = await supabase.auth.verifyOtp({
         type: "recovery",
-        token_hash,
+        token, // ❗ KEIN token_hash – dein Projekt liefert token!
         email,
       });
 
       if (error) {
-        console.error("verifyOtp ERROR:", error);
+        console.error("verifyOtp error", error);
         setErrorMsg("Der Passwort-Link ist abgelaufen oder ungültig.");
         setVerifying(false);
         return;
@@ -56,7 +59,7 @@ export default function ResetPassword() {
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      console.error("updateUser ERROR:", error);
+      console.error("updateUser error", error);
       setErrorMsg("Fehler beim Ändern des Passworts.");
       return;
     }
@@ -66,6 +69,8 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-900">
+
+      {/* Kein Header hier */}
 
       {/* HERO */}
       <section className="pt-40 pb-24 text-center bg-black text-white">
@@ -149,6 +154,9 @@ export default function ResetPassword() {
           )}
         </div>
       </section>
+
+      {/* Kein Footer */}
+
     </div>
   );
 }
