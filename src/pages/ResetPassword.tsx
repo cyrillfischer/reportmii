@@ -1,95 +1,184 @@
 // src/pages/ResetPassword.tsx
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Lock } from "lucide-react";
 import { supabase } from "../supabase/supabaseClient";
-import { useNavigate } from "react-router-dom";
+
+type ViewState = "checking" | "invalid" | "ready" | "saving" | "done";
 
 export default function ResetPassword() {
+  const [view, setView] = useState<ViewState>("checking");
   const [password, setPassword] = useState("");
-  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
-  const navigate = useNavigate();
+  const [errorMsg, setErrorMsg] = useState("");
 
-  // Token & params einlesen
-  const search = new URLSearchParams(window.location.search);
-
-  const token = search.get("token") || search.get("token_hash"); // beide Varianten unterstützt
-  const email = search.get("email");
-  const type = search.get("type");
-
-  // Token bei Supabase validieren
+  // --------------------------------------------------------
+  // 1) Link prüfen & bei Supabase verifizieren
+  // --------------------------------------------------------
   useEffect(() => {
-    async function verify() {
-      if (!token || !email || type !== "recovery") {
-        setTokenValid(false);
+    const params = new URLSearchParams(window.location.search);
+
+    // Supabase schickt token_hash + type=recovery
+    const token_hash =
+      params.get("token_hash") || params.get("token_hash".toLowerCase());
+    const type = params.get("type");
+
+    if (!token_hash || type !== "recovery") {
+      setErrorMsg("Der Passwort-Link ist ungültig oder unvollständig.");
+      setView("invalid");
+      return;
+    }
+
+    const verify = async () => {
+      setView("checking");
+      setErrorMsg("");
+
+      // WICHTIG: neues Supabase-Pattern -> nur type + token_hash
+      const { error } = await supabase.auth.verifyOtp({
+        type: "recovery",
+        token_hash,
+      } as any); // cast, weil die Typen token_hash noch nicht sauber kennen
+
+      if (error) {
+        console.error("verifyOtp error", error);
+        setErrorMsg(
+          error.message ||
+            "Der Passwort-Link ist abgelaufen oder ungültig."
+        );
+        setView("invalid");
         return;
       }
 
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: "recovery",
-      });
-
-      if (error) {
-        console.log("Supabase verify error:", error);
-        setTokenValid(false);
-      } else {
-        setTokenValid(true);
-      }
-    }
+      // Token ok → Passwortformular anzeigen
+      setView("ready");
+    };
 
     verify();
   }, []);
 
-  async function savePassword() {
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
+  // --------------------------------------------------------
+  // 2) Neues Passwort speichern
+  // --------------------------------------------------------
+  const handleSave = async () => {
+    if (view !== "ready") return;
 
-    if (!error) {
-      navigate("/login");
+    if (!password || password.length < 6) {
+      setErrorMsg("Bitte gib ein neues Passwort mit mindestens 6 Zeichen ein.");
+      return;
     }
-  }
 
+    setView("saving");
+    setErrorMsg("");
+
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      console.error("updateUser error", error);
+      setErrorMsg("Fehler beim Speichern des Passworts. Bitte versuche es erneut.");
+      setView("ready");
+      return;
+    }
+
+    setView("done");
+  };
+
+  // --------------------------------------------------------
+  // 3) UI
+  // --------------------------------------------------------
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white text-gray-900">
+      {/* Hero / Header */}
+      <section className="pt-40 pb-24 text-center bg-black text-white">
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-5xl md:text-6xl font-semibold mb-4"
+        >
+          Neues Passwort setzen
+        </motion.h1>
 
-      <section className="pt-40 pb-20 text-center bg-black text-white">
-        <h1 className="text-5xl font-semibold">Neues Passwort setzen</h1>
-        <p className="text-white/70 mt-4">Wähle ein neues, sicheres Passwort.</p>
+        <p className="text-white/70 max-w-xl mx-auto text-lg">
+          Wähle ein neues, sicheres Passwort.
+        </p>
       </section>
 
-      <div className="max-w-xl mx-auto mt-12 bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
+      {/* Content */}
+      <section className="py-24 px-6">
+        <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
+          {/* Status: Token wird geprüft */}
+          {view === "checking" && (
+            <p className="text-center text-gray-600">
+              Link wird geprüft …
+            </p>
+          )}
 
-        {tokenValid === false && (
-          <p className="text-red-600 text-center mb-6">
-            Der Passwort-Link ist ungültig oder abgelaufen.
-          </p>
-        )}
+          {/* Status: Link ungültig / Fehler */}
+          {view === "invalid" && (
+            <div className="text-center">
+              <p className="text-red-500 font-medium mb-2">
+                {errorMsg || "Der Passwort-Link ist ungültig oder abgelaufen."}
+              </p>
+            </div>
+          )}
 
-        {tokenValid === true && (
-          <>
-            <label className="block mb-2 text-gray-700 font-medium">
-              Neues Passwort
-            </label>
-            <input
-              className="w-full px-4 py-3 border rounded-xl mb-6"
-              type="password"
-              onChange={(e) => setPassword(e.target.value)}
-            />
+          {/* Status: Passwort ändern */}
+          {(view === "ready" || view === "saving") && (
+            <>
+              <label className="block text-left mb-6">
+                <span className="text-gray-700 font-medium flex items-center gap-2">
+                  <Lock size={20} className="text-[#7eb6b8]" />
+                  Neues Passwort
+                </span>
 
-            <button
-              onClick={savePassword}
-              className="w-full py-4 bg-[#7eb6b8] text-black font-semibold rounded-full"
-            >
-              Passwort speichern →
-            </button>
-          </>
-        )}
+                <input
+                  type="password"
+                  className="mt-3 w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#7eb6b8] focus:outline-none"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Neues Passwort eingeben"
+                />
+              </label>
 
-        {tokenValid === null && (
-          <p className="text-center text-gray-500">Prüfe Link…</p>
-        )}
-      </div>
+              {errorMsg && (
+                <p className="text-red-500 text-center mb-4 font-medium">
+                  {errorMsg}
+                </p>
+              )}
+
+              <button
+                onClick={handleSave}
+                disabled={view === "saving"}
+                className={`w-full bg-[#7eb6b8] py-4 rounded-full text-lg font-semibold hover:bg-black hover:text-white transition ${
+                  view === "saving" ? "opacity-60 cursor-not-allowed" : ""
+                }`}
+              >
+                {view === "saving"
+                  ? "Passwort wird gespeichert …"
+                  : "Passwort speichern →"}
+              </button>
+            </>
+          )}
+
+          {/* Status: Fertig */}
+          {view === "done" && (
+            <div className="text-center">
+              <Lock size={48} className="mx-auto mb-4 text-[#7eb6b8]" />
+              <h2 className="text-2xl font-semibold mb-2">
+                Passwort geändert!
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Du kannst dich jetzt mit deinem neuen Passwort einloggen.
+              </p>
+
+              <button
+                onClick={() => (window.location.href = "/login")}
+                className="w-full bg-[#7eb6b8] text-black py-4 rounded-full text-lg font-semibold hover:bg-black hover:text-white transition"
+              >
+                Weiter zum Login →
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
