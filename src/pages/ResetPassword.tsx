@@ -14,28 +14,29 @@ export default function ResetPassword() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
-    const token = params.get("token");
+    const token = params.get("token_hash");
     const type = params.get("type");
-    const email = params.get("email"); // 🔥 wichtig
 
-    if (!token || type !== "recovery" || !email) {
-      setView("invalid");
+    if (!token || type !== "recovery") {
       setErrorMsg("Der Passwort-Link ist ungültig oder unvollständig.");
+      setView("invalid");
       return;
     }
 
     const verify = async () => {
       setView("checking");
+      setErrorMsg("");
 
       const { error } = await supabase.auth.verifyOtp({
         type: "recovery",
-        token,
-        email, // 🔥 muss mitgegeben werden
+        token_hash: token,
       });
 
       if (error) {
-        console.error("verifyOtp error:", error);
-        setErrorMsg("Der Passwort-Link ist abgelaufen oder ungültig.");
+        console.error("verifyOtp error", error);
+        setErrorMsg(
+          error.message || "Der Passwort-Link ist abgelaufen oder ungültig."
+        );
         setView("invalid");
         return;
       }
@@ -47,8 +48,10 @@ export default function ResetPassword() {
   }, []);
 
   const handleSave = async () => {
+    if (view !== "ready") return;
+
     if (!password || password.length < 6) {
-      setErrorMsg("Bitte gib ein Passwort mit mindestens 6 Zeichen ein.");
+      setErrorMsg("Bitte gib ein neues Passwort mit mindestens 6 Zeichen ein.");
       return;
     }
 
@@ -58,7 +61,7 @@ export default function ResetPassword() {
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      console.error("updateUser error:", error);
+      console.error("updateUser error", error);
       setErrorMsg("Fehler beim Speichern des Passworts. Bitte versuche es erneut.");
       setView("ready");
       return;
@@ -77,6 +80,7 @@ export default function ResetPassword() {
         >
           Neues Passwort setzen
         </motion.h1>
+
         <p className="text-white/70 max-w-xl mx-auto text-lg">
           Wähle ein neues, sicheres Passwort.
         </p>
@@ -89,9 +93,11 @@ export default function ResetPassword() {
           )}
 
           {view === "invalid" && (
-            <p className="text-center text-red-500 font-medium">
-              {errorMsg}
-            </p>
+            <div className="text-center">
+              <p className="text-red-500 font-medium mb-2">
+                {errorMsg || "Der Passwort-Link ist ungültig oder abgelaufen."}
+              </p>
+            </div>
           )}
 
           {(view === "ready" || view === "saving") && (
@@ -134,9 +140,7 @@ export default function ResetPassword() {
           {view === "done" && (
             <div className="text-center">
               <Lock size={48} className="mx-auto mb-4 text-[#7eb6b8]" />
-              <h2 className="text-2xl font-semibold mb-2">
-                Passwort geändert!
-              </h2>
+              <h2 className="text-2xl font-semibold mb-2">Passwort geändert!</h2>
               <p className="text-gray-600 mb-6">
                 Du kannst dich jetzt mit deinem neuen Passwort einloggen.
               </p>
