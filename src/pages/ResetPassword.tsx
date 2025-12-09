@@ -11,58 +11,44 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // --------------------------------------------------------
-  // 1) Link prüfen & bei Supabase verifizieren
-  // --------------------------------------------------------
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
-    // Supabase schickt token_hash + type=recovery
-    const token_hash =
-      params.get("token_hash") || params.get("token_hash".toLowerCase());
+    const token = params.get("token");
     const type = params.get("type");
+    const email = params.get("email"); // 🔥 wichtig
 
-    if (!token_hash || type !== "recovery") {
-      setErrorMsg("Der Passwort-Link ist ungültig oder unvollständig.");
+    if (!token || type !== "recovery" || !email) {
       setView("invalid");
+      setErrorMsg("Der Passwort-Link ist ungültig oder unvollständig.");
       return;
     }
 
     const verify = async () => {
       setView("checking");
-      setErrorMsg("");
 
-      // WICHTIG: neues Supabase-Pattern -> nur type + token_hash
       const { error } = await supabase.auth.verifyOtp({
         type: "recovery",
-        token_hash,
-      } as any); // cast, weil die Typen token_hash noch nicht sauber kennen
+        token,
+        email, // 🔥 muss mitgegeben werden
+      });
 
       if (error) {
-        console.error("verifyOtp error", error);
-        setErrorMsg(
-          error.message ||
-            "Der Passwort-Link ist abgelaufen oder ungültig."
-        );
+        console.error("verifyOtp error:", error);
+        setErrorMsg("Der Passwort-Link ist abgelaufen oder ungültig.");
         setView("invalid");
         return;
       }
 
-      // Token ok → Passwortformular anzeigen
       setView("ready");
     };
 
     verify();
   }, []);
 
-  // --------------------------------------------------------
-  // 2) Neues Passwort speichern
-  // --------------------------------------------------------
   const handleSave = async () => {
-    if (view !== "ready") return;
-
     if (!password || password.length < 6) {
-      setErrorMsg("Bitte gib ein neues Passwort mit mindestens 6 Zeichen ein.");
+      setErrorMsg("Bitte gib ein Passwort mit mindestens 6 Zeichen ein.");
       return;
     }
 
@@ -72,7 +58,7 @@ export default function ResetPassword() {
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      console.error("updateUser error", error);
+      console.error("updateUser error:", error);
       setErrorMsg("Fehler beim Speichern des Passworts. Bitte versuche es erneut.");
       setView("ready");
       return;
@@ -81,12 +67,8 @@ export default function ResetPassword() {
     setView("done");
   };
 
-  // --------------------------------------------------------
-  // 3) UI
-  // --------------------------------------------------------
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-900">
-      {/* Hero / Header */}
       <section className="pt-40 pb-24 text-center bg-black text-white">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
@@ -95,32 +77,23 @@ export default function ResetPassword() {
         >
           Neues Passwort setzen
         </motion.h1>
-
         <p className="text-white/70 max-w-xl mx-auto text-lg">
           Wähle ein neues, sicheres Passwort.
         </p>
       </section>
 
-      {/* Content */}
       <section className="py-24 px-6">
         <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
-          {/* Status: Token wird geprüft */}
           {view === "checking" && (
-            <p className="text-center text-gray-600">
-              Link wird geprüft …
+            <p className="text-center text-gray-600">Link wird geprüft …</p>
+          )}
+
+          {view === "invalid" && (
+            <p className="text-center text-red-500 font-medium">
+              {errorMsg}
             </p>
           )}
 
-          {/* Status: Link ungültig / Fehler */}
-          {view === "invalid" && (
-            <div className="text-center">
-              <p className="text-red-500 font-medium mb-2">
-                {errorMsg || "Der Passwort-Link ist ungültig oder abgelaufen."}
-              </p>
-            </div>
-          )}
-
-          {/* Status: Passwort ändern */}
           {(view === "ready" || view === "saving") && (
             <>
               <label className="block text-left mb-6">
@@ -158,7 +131,6 @@ export default function ResetPassword() {
             </>
           )}
 
-          {/* Status: Fertig */}
           {view === "done" && (
             <div className="text-center">
               <Lock size={48} className="mx-auto mb-4 text-[#7eb6b8]" />
