@@ -70,11 +70,20 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// 🔑 Auth/Success Layout
+// 🔑 Minimal Layout (ohne Footer)
 function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
+      <main className="flex-grow">{children}</main>
+    </div>
+  );
+}
+
+// ❗ Reset-Passwort benötigt EIGENES Layout (NICHT AuthLayout)
+function PasswordLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen flex flex-col bg-white">
       <main className="flex-grow">{children}</main>
     </div>
   );
@@ -90,28 +99,24 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-
-  // 🔥 FINAL FIX: Auto-Redirect blockieren, wenn Reset-Passwort-Prozess läuft
+  // Block redirects during password recovery
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_: AuthChangeEvent, session: Session | null) => {
         const path = window.location.pathname;
         const search = window.location.search;
 
-        // Alle Fälle abdecken, in denen Passwort-Reset läuft
-        const isPasswordResetFlow =
+        const isPasswordFlow =
           path.includes("reset-password") ||
           path.includes("update-password") ||
           search.includes("token") ||
           search.includes("token_hash") ||
           search.includes("type=recovery");
 
-        // Während des Recovery-Flows KEIN Redirect!
-        if (isPasswordResetFlow) {
-          return;
+        if (isPasswordFlow) {
+          return; // WICHTIG!
         }
 
-        // Normales Verhalten: User eingeloggt → zum Dashboard
         if (session) {
           window.location.href = "/dashboard/overview";
         }
@@ -127,39 +132,34 @@ export default function App() {
   return (
     <Routes>
 
-      {/* 🌍 Landing */}
+      {/* Public pages */}
       <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
-
-      {/* 🟣 Business.mii */}
       <Route path="/business" element={<BusinessPage />} />
       <Route path="/business-checkout" element={<PublicLayout><BusinessCheckoutPage /></PublicLayout>} />
       <Route path="/success-business" element={<AuthLayout><SuccessBusinessPage /></AuthLayout>} />
 
-      {/* 💚 Inside.mii */}
       <Route path="/inside" element={<InsidePage />} />
       <Route path="/inside-checkout" element={<PublicLayout><InsideCheckoutPage /></PublicLayout>} />
       <Route path="/success-inside" element={<AuthLayout><SuccessInsidePage /></AuthLayout>} />
 
-      {/* 🟠 Partner.mii */}
       <Route path="/partner" element={<PublicLayout><PartnerPage /></PublicLayout>} />
       <Route path="/partner-checkout" element={<PublicLayout><PartnerCheckoutPage /></PublicLayout>} />
       <Route path="/success-partner" element={<AuthLayout><SuccessPartnerPage /></AuthLayout>} />
 
-      {/* 🟩 Affiliate */}
       <Route path="/affiliate" element={<PublicLayout><AffiliatePage /></PublicLayout>} />
       <Route path="/affiliate-register" element={<PublicLayout><AffiliateRegisterPage /></PublicLayout>} />
       <Route path="/success-affiliate" element={<AuthLayout><SuccessAffiliatePage /></AuthLayout>} />
-
-      {/* 🟦 Success Register */}
       <Route path="/success-register" element={<AuthLayout><SuccessRegisterPage /></AuthLayout>} />
 
-      {/* 🔑 Auth */}
+      {/* Auth */}
       <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
       <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
-      <Route path="/reset-password" element={<AuthLayout><ResetPassword /></AuthLayout>} />
-      <Route path="/update-password" element={<AuthLayout><UpdatePassword /></AuthLayout>} />
 
-      {/* 📊 Dashboard */}
+      {/* WICHTIG: Eigener Layout-Wrapper – kein Header, kein Footer */}
+      <Route path="/reset-password" element={<PasswordLayout><ResetPassword /></PasswordLayout>} />
+      <Route path="/update-password" element={<PasswordLayout><UpdatePassword /></PasswordLayout>} />
+
+      {/* Dashboard */}
       <Route
         path="/dashboard"
         element={
@@ -204,7 +204,6 @@ export default function App() {
         }
       />
 
-      {/* 🧠 Analyse Workflow */}
       <Route
         path="/analysis/new"
         element={
@@ -271,13 +270,13 @@ export default function App() {
         }
       />
 
-      {/* 📄 Legal */}
+      {/* Legal */}
       <Route path="/impressum" element={<PublicLayout><ImpressumPage /></PublicLayout>} />
       <Route path="/privacy" element={<PublicLayout><PrivacyPage /></PublicLayout>} />
       <Route path="/terms" element={<PublicLayout><TermsPage /></PublicLayout>} />
       <Route path="/contact" element={<PublicLayout><ContactPage /></PublicLayout>} />
 
-      {/* ❌ Fallback */}
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
 
     </Routes>
