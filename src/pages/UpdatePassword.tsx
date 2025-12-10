@@ -16,7 +16,8 @@ export default function UpdatePassword() {
   const handleUpdate = async () => {
     setErrorMsg("");
 
-    const { error } = await supabase.auth.updateUser({ password });
+   const { data, error } = await supabase.auth.updateUser({ password });
+console.log("🔍 updateUser RESULT:", { data, error });
 
     if (error) {
       setErrorMsg("Passwort konnte nicht geändert werden.");
