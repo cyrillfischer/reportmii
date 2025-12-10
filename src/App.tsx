@@ -91,14 +91,28 @@ export default function App() {
   }, [location.pathname]);
 
 
-  // 🔥 FIXED: Auto-Redirect darf NICHT auf der Reset-Password-Seite triggern!
+  // 🔥 FINAL FIX: Auto-Redirect blockieren, wenn Reset-Passwort-Prozess läuft
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_: AuthChangeEvent, session: Session | null) => {
-        const isResetPage =
-          window.location.pathname.includes("reset-password");
+        const path = window.location.pathname;
+        const search = window.location.search;
 
-        if (session && !isResetPage) {
+        // Alle Fälle abdecken, in denen Passwort-Reset läuft
+        const isPasswordResetFlow =
+          path.includes("reset-password") ||
+          path.includes("update-password") ||
+          search.includes("token") ||
+          search.includes("token_hash") ||
+          search.includes("type=recovery");
+
+        // Während des Recovery-Flows KEIN Redirect!
+        if (isPasswordResetFlow) {
+          return;
+        }
+
+        // Normales Verhalten: User eingeloggt → zum Dashboard
+        if (session) {
           window.location.href = "/dashboard/overview";
         }
       }
