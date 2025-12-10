@@ -1,7 +1,7 @@
 // src/pages/ResetPassword.tsx
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, Eye, EyeOff } from "lucide-react";
+import { Lock } from "lucide-react";
 import { supabase } from "../supabase/supabaseClient";
 
 type ViewState = "checking" | "invalid" | "ready" | "saving" | "done";
@@ -10,8 +10,8 @@ export default function ResetPassword() {
   const [view, setView] = useState<ViewState>("checking");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPassword2, setShowPassword2] = useState(false);
+  const [show1, setShow1] = useState(false);
+  const [show2, setShow2] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -29,7 +29,6 @@ export default function ResetPassword() {
 
     const verify = async () => {
       setView("checking");
-      setErrorMsg("");
 
       const { error } = await supabase.auth.verifyOtp({
         type: "recovery",
@@ -37,13 +36,11 @@ export default function ResetPassword() {
       });
 
       if (error) {
-        console.error("verifyOtp error", error);
         setErrorMsg("Der Passwort-Link ist abgelaufen oder ungültig.");
         setView("invalid");
         return;
       }
 
-      // Jetzt ist der User temporär eingeloggt
       setView("ready");
     };
 
@@ -51,9 +48,7 @@ export default function ResetPassword() {
   }, []);
 
   const handleSave = async () => {
-    if (view !== "ready") return;
-
-    if (!password || password.length < 6) {
+    if (password.length < 6) {
       setErrorMsg("Das Passwort muss mindestens 6 Zeichen haben.");
       return;
     }
@@ -64,166 +59,124 @@ export default function ResetPassword() {
     }
 
     if (!confirmed) {
-      setErrorMsg(
-        "Bitte bestätige, dass du der Inhaber dieses Kontos bist."
-      );
+      setErrorMsg("Bitte bestätige, dass du der Kontoinhaber bist.");
       return;
     }
 
     setView("saving");
     setErrorMsg("");
 
-    try {
-      const { data, error } = await supabase.auth.updateUser({ password });
+    const { data, error } = await supabase.auth.updateUser({ password });
 
-      if (error) {
-        console.error("updateUser error", error);
-        setErrorMsg(
-          error.message ||
-            "Fehler beim Speichern des Passworts. Bitte versuche es erneut."
-        );
-        setView("ready");
-        return;
-      }
-
-      if (!data?.user) {
-        console.error("updateUser: keine User-Daten zurückgegeben", data);
-        setErrorMsg(
-          "Unerwarteter Fehler beim Aktualisieren des Passworts. Bitte versuche es erneut."
-        );
-        setView("ready");
-        return;
-      }
-
-      setView("done");
-    } catch (err) {
-      console.error("updateUser exception", err);
-      setErrorMsg(
-        "Netzwerkfehler beim Speichern des Passworts. Bitte versuche es später erneut."
-      );
+    if (error || !data?.user) {
+      setErrorMsg("Fehler beim Speichern. Bitte erneut versuchen.");
       setView("ready");
+      return;
     }
+
+    setView("done");
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-900">
-      {/* HEADER SECTION */}
       <section className="pt-40 pb-24 text-center bg-black text-white">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-5xl md:text-6xl font-semibold mb-4 text-white"
+          className="text-5xl md:text-6xl font-semibold mb-4"
         >
           Neues Passwort setzen
         </motion.h1>
 
         <p className="text-white/70 max-w-xl mx-auto text-lg">
-          Wähle ein neues, sicheres Passwort und bestätige es unten.
+          Wähle ein neues, sicheres Passwort.
         </p>
       </section>
 
-      {/* CONTENT */}
       <section className="py-24 px-6">
         <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
-          {/* Checking */}
+
           {view === "checking" && (
             <p className="text-center text-gray-600">Link wird geprüft …</p>
           )}
 
-          {/* Invalid */}
           {view === "invalid" && (
-            <div className="text-center">
-              <p className="text-red-500 font-medium mb-2">{errorMsg}</p>
-            </div>
+            <p className="text-center text-red-500">{errorMsg}</p>
           )}
 
-          {/* Ready / Saving */}
           {(view === "ready" || view === "saving") && (
             <>
               {/* Passwort */}
-              <label className="block text-left mb-6">
+              <label className="block mb-6">
                 <span className="text-gray-700 font-medium flex items-center gap-2">
                   <Lock size={20} className="text-[#7eb6b8]" />
                   Neues Passwort
                 </span>
 
-                <div className="mt-3 w-full flex items-center rounded-xl border border-gray-300 focus-within:ring-2 focus-within:ring-[#7eb6b8]">
+                <div className="relative mt-3">
                   <input
-                    type={showPassword ? "text" : "password"}
-                    className="flex-1 px-4 py-3 rounded-xl border-0 focus:outline-none"
+                    type={show1 ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Neues Passwort eingeben"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#7eb6b8]"
                   />
+
                   <button
                     type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="px-3 pr-4 text-gray-500 hover:text-gray-700"
+                    className="absolute right-4 top-3 text-gray-500"
+                    onClick={() => setShow1(!show1)}
                   >
-                    {showPassword ? (
-                      <EyeOff size={20} />
-                    ) : (
-                      <Eye size={20} />
-                    )}
+                    {show1 ? "👁️‍🗨️" : "👁️"}
                   </button>
                 </div>
               </label>
 
               {/* Passwort wiederholen */}
-              <label className="block text-left mb-6">
+              <label className="block mb-6">
                 <span className="text-gray-700 font-medium flex items-center gap-2">
                   <Lock size={20} className="text-[#7eb6b8]" />
                   Passwort wiederholen
                 </span>
 
-                <div className="mt-3 w-full flex items-center rounded-xl border border-gray-300 focus-within:ring-2 focus-within:ring-[#7eb6b8]">
+                <div className="relative mt-3">
                   <input
-                    type={showPassword2 ? "text" : "password"}
-                    className="flex-1 px-4 py-3 rounded-xl border-0 focus:outline-none"
+                    type={show2 ? "text" : "password"}
                     value={password2}
                     onChange={(e) => setPassword2(e.target.value)}
-                    placeholder="Passwort erneut eingeben"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#7eb6b8]"
                   />
+
                   <button
                     type="button"
-                    onClick={() => setShowPassword2((prev) => !prev)}
-                    className="px-3 pr-4 text-gray-500 hover:text-gray-700"
+                    className="absolute right-4 top-3 text-gray-500"
+                    onClick={() => setShow2(!show2)}
                   >
-                    {showPassword2 ? (
-                      <EyeOff size={20} />
-                    ) : (
-                      <Eye size={20} />
-                    )}
+                    {show2 ? "👁️‍🗨️" : "👁️"}
                   </button>
                 </div>
               </label>
 
-              {/* Checkbox "Ich bin eine echte Person" */}
+              {/* Checkbox */}
               <label className="flex items-start gap-3 mb-4 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={confirmed}
                   onChange={(e) => setConfirmed(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-gray-300 text-[#7eb6b8] focus:ring-[#7eb6b8]"
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-[#7eb6b8]"
                 />
                 <span className="text-sm text-gray-700">
-                  Ich bestätige, dass ich der Inhaber dieses Kontos bin und das
-                  Passwort eigenständig ändere.
+                  Ich bestätige, dass ich der Inhaber dieses Kontos bin.
                 </span>
               </label>
 
               {errorMsg && (
-                <p className="text-red-500 text-center mb-4 font-medium">
-                  {errorMsg}
-                </p>
+                <p className="text-center text-red-500 mb-4">{errorMsg}</p>
               )}
 
               <button
                 onClick={handleSave}
                 disabled={view === "saving"}
-                className={`w-full bg-[#7eb6b8] py-4 rounded-full text-lg font-semibold hover:bg-black hover:text-white transition ${
-                  view === "saving" ? "opacity-60 cursor-not-allowed" : ""
-                }`}
+                className="w-full bg-[#7eb6b8] py-4 rounded-full text-lg font-semibold"
               >
                 {view === "saving"
                   ? "Passwort wird gespeichert …"
@@ -232,20 +185,14 @@ export default function ResetPassword() {
             </>
           )}
 
-          {/* DONE */}
           {view === "done" && (
             <div className="text-center">
-              <Lock size={48} className="mx-auto mb-4 text-[#7eb6b8]" />
               <h2 className="text-2xl font-semibold mb-2">
                 Passwort erfolgreich geändert!
               </h2>
-              <p className="text-gray-600 mb-6">
-                Du kannst dich jetzt mit deinem neuen Passwort einloggen.
-              </p>
-
               <button
                 onClick={() => (window.location.href = "/login")}
-                className="w-full bg-[#7eb6b8] text-black py-4 rounded-full text-lg font-semibold hover:bg-black hover:text-white transition"
+                className="w-full bg-[#7eb6b8] py-4 rounded-full text-lg font-semibold mt-6"
               >
                 Weiter zum Login →
               </button>
