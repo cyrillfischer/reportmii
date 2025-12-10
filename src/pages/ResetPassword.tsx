@@ -1,164 +1,142 @@
+// src/pages/ResetPassword.tsx
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabaseClient";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const [params] = useSearchParams();
-
-  const token_hash = params.get("token_hash");
-  const type = params.get("type");
 
   const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
+  const [passwordRepeat, setPasswordRepeat] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPw1, setShowPw1] = useState(false);
-  const [showPw2, setShowPw2] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [token, setToken] = useState<string | null>(null);
 
+  // --- TOKEN AUS URL EXTRAHIEREN ---
   useEffect(() => {
-    console.log("ResetPassword gestartet. token_hash=", token_hash);
+    const url = new URL(window.location.href);
+    const t = url.searchParams.get("token_hash");
+    setToken(t);
   }, []);
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    setErrorMessage("");
+  const handleReset = async () => {
+    setErrorMsg("");
 
-    if (!password || !password2) {
-      setErrorMessage("Bitte beide Felder ausfüllen.");
+    if (!token) {
+      setErrorMsg("Ungültiger oder fehlender Token.");
       return;
     }
 
-    if (password !== password2) {
-      setErrorMessage("Die Passwörter stimmen nicht überein.");
+    if (password !== passwordRepeat) {
+      setErrorMsg("Die Passwörter stimmen nicht überein.");
       return;
     }
 
-    if (!token_hash || type !== "recovery") {
-      setErrorMessage("Token ungültig oder abgelaufen.");
+    if (password.length < 6) {
+      setErrorMsg("Das Passwort muss mindestens 6 Zeichen lang sein.");
       return;
     }
+
+    setLoading(true);
 
     try {
-      setLoading(true);
-
-      // 1️⃣ Token verifizieren
-      console.log("verifyOtp gestartet…");
-      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash,
-        type: "recovery",
-      });
-
-      console.log("verifyOtp Ergebnis:", verifyData, verifyError);
+      // 1️⃣ VERIFY OTP
+      const { data: verifyData, error: verifyError } =
+        await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: "recovery",
+        });
 
       if (verifyError) {
-        setErrorMessage("Token ungültig oder abgelaufen.");
         setLoading(false);
+        setErrorMsg("Token ungültig oder abgelaufen.");
         return;
       }
 
-      // 2️⃣ Passwort aktualisieren
-      console.log("updateUser gestartet…");
+      // 2️⃣ UPDATE USER PASSWORD
       const { error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
 
       if (updateError) {
-        console.error(updateError);
-        setErrorMessage("Fehler beim Speichern. Bitte erneut versuchen.");
         setLoading(false);
+        setErrorMsg(updateError.message);
         return;
       }
 
-      // Erfolg → Weiterleiten
-      navigate("/login?reset=success");
-
+      // 3️⃣ REDIRECT
+      setLoading(false);
+      navigate("/login");
     } catch (err: any) {
-      console.error(err);
-      setErrorMessage("Interner Fehler.");
+      setLoading(false);
+      setErrorMsg("Ein Fehler ist aufgetreten. Bitte erneut versuchen.");
     }
-
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      
-      {/* HERO HEADER */}
-      <div className="w-full bg-black pt-28 pb-20 text-center">
-        <h1 className="text-4xl font-bold text-white">Neues Passwort setzen</h1>
-        <p className="text-gray-300 mt-2">Wähle ein neues, sicheres Passwort.</p>
+    <div className="min-h-screen bg-white flex flex-col">
+
+      {/* BLACK HEADER */}
+      <div className="w-full bg-black py-24 text-center">
+        <h1 className="text-white text-4xl font-bold">Neues Passwort setzen</h1>
+        <p className="text-gray-300 mt-2">
+          Wähle ein neues, sicheres Passwort.
+        </p>
       </div>
 
-      {/* CARD */}
-      <div className="max-w-md mx-auto mt-10 p-8 rounded-2xl shadow-lg bg-white">
-        <form onSubmit={handleSubmit}>
+      {/* CONTENT */}
+      <div className="flex justify-center mt-10 px-4">
+        <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md">
 
-          {/* PASSWORD 1 */}
-          <label className="block text-sm font-medium mb-1">Neues Passwort</label>
-          <div className="relative mb-6">
-            <input
-              type={showPw1 ? "text" : "password"}
-              className="w-full border rounded-lg px-4 py-3"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <div
-              onClick={() => setShowPw1(!showPw1)}
-              className="absolute right-3 top-3 cursor-pointer text-gray-500"
-            >
-              {showPw1 ? <EyeOff size={20} /> : <Eye size={20} />}
-            </div>
-          </div>
+          {/* NEW PASSWORD */}
+          <label className="text-sm font-medium">Neues Passwort</label>
+          <input
+            type="password"
+            className="w-full mt-1 mb-4 p-3 border rounded-lg"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-          {/* PASSWORD 2 */}
-          <label className="block text-sm font-medium mb-1">Passwort wiederholen</label>
-          <div className="relative mb-6">
-            <input
-              type={showPw2 ? "text" : "password"}
-              className="w-full border rounded-lg px-4 py-3"
-              value={password2}
-              onChange={(e) => setPassword2(e.target.value)}
-            />
-            <div
-              onClick={() => setShowPw2(!showPw2)}
-              className="absolute right-3 top-3 cursor-pointer text-gray-500"
-            >
-              {showPw2 ? <EyeOff size={20} /> : <Eye size={20} />}
-            </div>
-          </div>
+          {/* REPEAT PASSWORD */}
+          <label className="text-sm font-medium">Passwort wiederholen</label>
+          <input
+            type="password"
+            className="w-full mt-1 mb-4 p-3 border rounded-lg"
+            value={passwordRepeat}
+            onChange={(e) => setPasswordRepeat(e.target.value)}
+          />
 
-          {/* CHECKBOX */}
-          <div className="flex items-center mb-6">
-            <input type="checkbox" className="mr-2" required />
-            <span className="text-sm text-gray-700">
+          {/* CONFIRM CHECKBOX */}
+          <div className="flex items-center mb-4">
+            <input type="checkbox" defaultChecked className="mr-2" />
+            <span className="text-sm">
               Ich bestätige, dass ich der Inhaber dieses Kontos bin.
             </span>
           </div>
 
           {/* ERROR */}
-          {errorMessage && (
-            <p className="text-red-600 text-sm mb-4">{errorMessage}</p>
+          {errorMsg && (
+            <p className="text-red-500 text-sm mb-4">{errorMsg}</p>
           )}
 
           {/* BUTTON */}
           <button
-            type="submit"
+            onClick={handleReset}
             disabled={loading}
-            className="w-full bg-[#7eb6b8] text-white py-3 rounded-xl text-center font-medium hover:opacity-90"
+            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
           >
-            {loading ? "Passwort wird gespeichert…" : "Passwort speichern →"}
+            {loading ? "Passwort wird gespeichert …" : "Passwort speichern"}
           </button>
 
-        </form>
+          {/* BACK LINK */}
+          <button
+            onClick={() => navigate("/login")}
+            className="block mx-auto mt-4 text-gray-600 underline text-sm"
+          >
+            Zurück zum Login
+          </button>
 
-        <button
-          onClick={() => navigate("/login")}
-          className="mt-4 text-center w-full text-gray-500 text-sm"
-        >
-          Zurück zum Login
-        </button>
+        </div>
       </div>
     </div>
   );
