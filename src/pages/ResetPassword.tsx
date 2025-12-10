@@ -1,7 +1,7 @@
 // src/pages/ResetPassword.tsx
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Lock } from "lucide-react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "../supabase/supabaseClient";
 
 type ViewState = "checking" | "invalid" | "ready" | "saving" | "done";
@@ -10,6 +10,9 @@ export default function ResetPassword() {
   const [view, setView] = useState<ViewState>("checking");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword2, setShowPassword2] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -60,19 +63,46 @@ export default function ResetPassword() {
       return;
     }
 
-    setView("saving");
-    setErrorMsg("");
-
-    const { error } = await supabase.auth.updateUser({ password });
-
-    if (error) {
-      console.error("updateUser error", error);
-      setErrorMsg("Fehler beim Speichern des Passworts. Bitte versuche es erneut.");
-      setView("ready");
+    if (!confirmed) {
+      setErrorMsg(
+        "Bitte bestätige, dass du der Inhaber dieses Kontos bist."
+      );
       return;
     }
 
-    setView("done");
+    setView("saving");
+    setErrorMsg("");
+
+    try {
+      const { data, error } = await supabase.auth.updateUser({ password });
+
+      if (error) {
+        console.error("updateUser error", error);
+        setErrorMsg(
+          error.message ||
+            "Fehler beim Speichern des Passworts. Bitte versuche es erneut."
+        );
+        setView("ready");
+        return;
+      }
+
+      if (!data?.user) {
+        console.error("updateUser: keine User-Daten zurückgegeben", data);
+        setErrorMsg(
+          "Unerwarteter Fehler beim Aktualisieren des Passworts. Bitte versuche es erneut."
+        );
+        setView("ready");
+        return;
+      }
+
+      setView("done");
+    } catch (err) {
+      console.error("updateUser exception", err);
+      setErrorMsg(
+        "Netzwerkfehler beim Speichern des Passworts. Bitte versuche es später erneut."
+      );
+      setView("ready");
+    }
   };
 
   return (
@@ -95,7 +125,6 @@ export default function ResetPassword() {
       {/* CONTENT */}
       <section className="py-24 px-6">
         <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
-          
           {/* Checking */}
           {view === "checking" && (
             <p className="text-center text-gray-600">Link wird geprüft …</p>
@@ -104,9 +133,7 @@ export default function ResetPassword() {
           {/* Invalid */}
           {view === "invalid" && (
             <div className="text-center">
-              <p className="text-red-500 font-medium mb-2">
-                {errorMsg}
-              </p>
+              <p className="text-red-500 font-medium mb-2">{errorMsg}</p>
             </div>
           )}
 
@@ -120,13 +147,26 @@ export default function ResetPassword() {
                   Neues Passwort
                 </span>
 
-                <input
-                  type="password"
-                  className="mt-3 w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#7eb6b8] focus:outline-none"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Neues Passwort eingeben"
-                />
+                <div className="mt-3 w-full flex items-center rounded-xl border border-gray-300 focus-within:ring-2 focus-within:ring-[#7eb6b8]">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="flex-1 px-4 py-3 rounded-xl border-0 focus:outline-none"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Neues Passwort eingeben"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="px-3 pr-4 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? (
+                      <EyeOff size={20} />
+                    ) : (
+                      <Eye size={20} />
+                    )}
+                  </button>
+                </div>
               </label>
 
               {/* Passwort wiederholen */}
@@ -136,13 +176,40 @@ export default function ResetPassword() {
                   Passwort wiederholen
                 </span>
 
+                <div className="mt-3 w-full flex items-center rounded-xl border border-gray-300 focus-within:ring-2 focus-within:ring-[#7eb6b8]">
+                  <input
+                    type={showPassword2 ? "text" : "password"}
+                    className="flex-1 px-4 py-3 rounded-xl border-0 focus:outline-none"
+                    value={password2}
+                    onChange={(e) => setPassword2(e.target.value)}
+                    placeholder="Passwort erneut eingeben"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword2((prev) => !prev)}
+                    className="px-3 pr-4 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword2 ? (
+                      <EyeOff size={20} />
+                    ) : (
+                      <Eye size={20} />
+                    )}
+                  </button>
+                </div>
+              </label>
+
+              {/* Checkbox "Ich bin eine echte Person" */}
+              <label className="flex items-start gap-3 mb-4 cursor-pointer">
                 <input
-                  type="password"
-                  className="mt-3 w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#7eb6b8] focus:outline-none"
-                  value={password2}
-                  onChange={(e) => setPassword2(e.target.value)}
-                  placeholder="Passwort erneut eingeben"
+                  type="checkbox"
+                  checked={confirmed}
+                  onChange={(e) => setConfirmed(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-[#7eb6b8] focus:ring-[#7eb6b8]"
                 />
+                <span className="text-sm text-gray-700">
+                  Ich bestätige, dass ich der Inhaber dieses Kontos bin und das
+                  Passwort eigenständig ändere.
+                </span>
               </label>
 
               {errorMsg && (
@@ -169,9 +236,11 @@ export default function ResetPassword() {
           {view === "done" && (
             <div className="text-center">
               <Lock size={48} className="mx-auto mb-4 text-[#7eb6b8]" />
-              <h2 className="text-2xl font-semibold mb-2">Passwort geändert!</h2>
+              <h2 className="text-2xl font-semibold mb-2">
+                Passwort erfolgreich geändert!
+              </h2>
               <p className="text-gray-600 mb-6">
-                Dein Passwort wurde erfolgreich aktualisiert.
+                Du kannst dich jetzt mit deinem neuen Passwort einloggen.
               </p>
 
               <button
@@ -182,7 +251,6 @@ export default function ResetPassword() {
               </button>
             </div>
           )}
-
         </div>
       </section>
     </div>
