@@ -73,7 +73,20 @@ export default function ResetPassword() {
 
     if (error) {
       console.error("updateUser error", error);
-      setErrorMsg("Fehler beim Speichern. Bitte erneut versuchen.");
+
+      // 🔍 Spezifische Fehler schöner ausgeben
+      const msg = error.message || "";
+
+      if (msg.includes("New password should be different from the old password")) {
+        setErrorMsg(
+          "Dein neues Passwort muss sich vom bisherigen unterscheiden."
+        );
+      } else if (msg.toLowerCase().includes("password")) {
+        setErrorMsg("Das Passwort konnte nicht geändert werden. Bitte prüfe deine Eingabe.");
+      } else {
+        setErrorMsg("Fehler beim Speichern. Bitte erneut versuchen.");
+      }
+
       setView("ready");
       return;
     }
@@ -83,7 +96,6 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-
       {/* HEADER-BLOCK */}
       <section className="pt-40 pb-24 text-center bg-black">
         <motion.h1
@@ -102,7 +114,6 @@ export default function ResetPassword() {
       {/* CONTENT */}
       <section className="py-24 px-6">
         <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
-
           {view === "checking" && (
             <p className="text-center text-gray-600">Link wird geprüft…</p>
           )}
@@ -218,7 +229,6 @@ export default function ResetPassword() {
               </button>
             </div>
           )}
-
         </div>
       </section>
     </div>
