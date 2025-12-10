@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
@@ -7,31 +7,55 @@ export default function ResetPassword() {
   const [params] = useSearchParams();
 
   const token_hash = params.get("token_hash");
-  const type = params.get("type"); // "recovery"
+  const type = params.get("type");
 
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [checkbox, setCheckbox] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
-  const [email, setEmail] = useState("");
-
+  // ------------------------------------------------------
+  // 1. Token prüfen → temporäre Session erzeugen
+  // ------------------------------------------------------
   useEffect(() => {
-    async function loadEmail() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData?.session?.user?.email)
-        setEmail(sessionData.session.user.email);
+    const run = async () => {
+      if (!token_hash || type !== "recovery") {
+        setErrorMsg("Ungültiger Link.");
+        return;
+      }
+
+      console.log("verifyOtp gestartet…");
+
+      const { data, error } = await supabase.auth.verifyOtp({
+        type: "recovery",
+        token_hash,
+      });
+
+      if (error) {
+        console.log("verifyOtp Fehler:", error);
+        setErrorMsg("Token ungültig oder abgelaufen.");
+        return;
+      }
+
+      console.log("verifyOtp erfolgreich → temporäre Session aktiv:", data);
+    };
+
+    run();
+  }, [token_hash, type]);
+
+  // ------------------------------------------------------
+  // 2. Passwort speichern
+  // ------------------------------------------------------
+  const handleSave = async () => {
+    if (!confirmed) {
+      setErrorMsg("Bitte bestätigen.");
+      return;
     }
-    loadEmail();
-  }, []);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setErrorMsg("");
-
-    if (!password || !password2) {
-      setErrorMsg("Bitte gib zweimal ein Passwort ein.");
+    if (password.length < 6) {
+      setErrorMsg("Passwort muss min. 6 Zeichen haben.");
       return;
     }
 
@@ -40,137 +64,98 @@ export default function ResetPassword() {
       return;
     }
 
-    if (!checkbox) {
-      setErrorMsg("Bitte bestätige, dass du der Inhaber des Kontos bist.");
+    setLoading(true);
+    setErrorMsg("");
+
+    console.log("Setze Passwort…");
+
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      console.log("updateUser Fehler:", error);
+      setErrorMsg("Fehler beim Speichern. Bitte erneut versuchen.");
       return;
     }
 
-    setLoading(true);
+    setSuccess(true);
 
-    try {
-      console.log("verifyOtp gestartet...");
-
-      // 1) Token validieren
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash,
-        type: "recovery",
-      });
-
-      if (verifyError) {
-        console.error("verifyOtp error:", verifyError);
-        setErrorMsg("Token ungültig oder abgelaufen.");
-        setLoading(false);
-        return;
-      }
-
-      console.log("Token gültig. Setze Passwort...");
-
-      // 2) Neues Passwort setzen
-      const { error: pwError } = await supabase.auth.updateUser({
-        password: password,
-      });
-
-      if (pwError) {
-        console.error("updateUser error:", pwError);
-        setErrorMsg(
-          "Passwort konnte nicht gesetzt werden. Bitte erneut versuchen."
-        );
-        setLoading(false);
-        return;
-      }
-
-      console.log("Passwort gesetzt. Melde User an...");
-
-      // 3) User erneut einloggen (Recovery erzeugt KEINE Session!)
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (loginError) {
-        console.error("Login error:", loginError);
-        setErrorMsg("Passwort gesetzt, aber Login fehlgeschlagen.");
-        setLoading(false);
-        return;
-      }
-
-      console.log("Login erfolgreich. Weiterleitung...");
-
-      navigate("/dashboard/overview");
-    } catch (e) {
-      console.error("Fehler:", e);
-      setErrorMsg("Unbekannter Fehler. Bitte erneut versuchen.");
-    }
-
-    setLoading(false);
-  }
+    // Weiterleitung nach 2 Sekunden
+    setTimeout(() => navigate("/login"), 2000);
+  };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Schwarzer Header */}
-      <div className="bg-black py-20 text-center">
+      <div className="w-full bg-black pt-24 pb-24 text-center">
         <h1 className="text-white text-4xl font-bold">Neues Passwort setzen</h1>
         <p className="text-gray-300 mt-2">
-          Wähle ein neues, sicheres Passwort und bestätige es unten.
+          Wähle ein neues, sicheres Passwort.
         </p>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-md mx-auto mt-12 p-10 shadow-xl rounded-3xl bg-white"
-      >
-        {/* Password */}
-        <label className="block mb-2 text-gray-700 font-semibold">
-          Neues Passwort
-        </label>
-        <div className="relative mb-6">
+      {/* Card */}
+      <div className="max-w-lg mx-auto -mt-20 bg-white shadow-xl rounded-xl p-10">
+        
+        <div className="mb-6">
+          <label className="text-sm font-semibold">Neues Passwort</label>
           <input
             type="password"
-            className="w-full p-3 rounded-xl border"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full border rounded-lg mt-2 px-4 py-3"
           />
         </div>
 
-        {/* Password confirm */}
-        <label className="block mb-2 text-gray-700 font-semibold">
-          Passwort wiederholen
-        </label>
-        <div className="relative mb-6">
+        <div className="mb-6">
+          <label className="text-sm font-semibold">Passwort wiederholen</label>
           <input
             type="password"
-            className="w-full p-3 rounded-xl border"
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}
+            className="w-full border rounded-lg mt-2 px-4 py-3"
           />
         </div>
 
-        {/* Checkbox */}
-        <label className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-4">
           <input
             type="checkbox"
-            checked={checkbox}
-            onChange={() => setCheckbox(!checkbox)}
+            checked={confirmed}
+            onChange={(e) => setConfirmed(e.target.checked)}
           />
-          <span className="text-gray-600">
+          <span className="text-sm">
             Ich bestätige, dass ich der Inhaber dieses Kontos bin.
           </span>
-        </label>
+        </div>
 
-        {/* Error */}
         {errorMsg && (
-          <p className="text-red-500 font-medium mb-4">{errorMsg}</p>
+          <p className="text-red-500 text-sm mb-4">{errorMsg}</p>
         )}
 
-        {/* Button */}
+        {success && (
+          <p className="text-green-600 font-semibold mb-4">
+            Passwort gespeichert! Weiterleitung…
+          </p>
+        )}
+
         <button
-          type="submit"
+          onClick={handleSave}
           disabled={loading}
-          className="w-full bg-black text-white py-3 rounded-xl mt-4"
+          className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
         >
-          {loading ? "Passwort wird gespeichert..." : "Passwort speichern →"}
+          {loading ? "Passwort wird gespeichert …" : "Passwort speichern →"}
         </button>
-      </form>
+
+        <button
+          onClick={() => navigate("/login")}
+          className="mt-6 text-center w-full text-gray-500 underline"
+        >
+          Zurück zum Login
+        </button>
+      </div>
     </div>
   );
 }
