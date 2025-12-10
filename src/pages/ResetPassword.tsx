@@ -4,192 +4,161 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
-  const token_hash = searchParams.get("token_hash");
-  const type = searchParams.get("type");
+  const token_hash = params.get("token_hash");
+  const type = params.get("type");
 
   const [password, setPassword] = useState("");
-  const [passwordRepeat, setPasswordRepeat] = useState("");
+  const [password2, setPassword2] = useState("");
+  const [loading, setLoading] = useState(false);
   const [showPw1, setShowPw1] = useState(false);
   const [showPw2, setShowPw2] = useState(false);
-  const [confirmOwner, setConfirmOwner] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [success, setSuccess] = useState(false);
-
-  // Wenn kein Token vorhanden ist → redirect
   useEffect(() => {
-    if (!token_hash || type !== "recovery") {
-      navigate("/login");
-    }
-  }, [token_hash, type, navigate]);
+    console.log("ResetPassword gestartet. token_hash=", token_hash);
+  }, []);
 
-  async function handleSubmit(e: any) {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    setErrorMsg("");
+    setErrorMessage("");
 
-    if (!confirmOwner) {
-      setErrorMsg("Bitte bestätige, dass du der Inhaber dieses Kontos bist.");
+    if (!password || !password2) {
+      setErrorMessage("Bitte beide Felder ausfüllen.");
       return;
     }
 
-    if (password !== passwordRepeat) {
-      setErrorMsg("Die Passwörter stimmen nicht überein.");
+    if (password !== password2) {
+      setErrorMessage("Die Passwörter stimmen nicht überein.");
       return;
     }
 
-    setLoading(true);
+    if (!token_hash || type !== "recovery") {
+      setErrorMessage("Token ungültig oder abgelaufen.");
+      return;
+    }
 
     try {
-      console.log("verifyOtp gestartet…");
+      setLoading(true);
 
-      // 1️⃣ Token validieren (wichtig!)
-      const { data, error } = await supabase.auth.verifyOtp({
+      // 1️⃣ Token verifizieren
+      console.log("verifyOtp gestartet…");
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
         token_hash,
         type: "recovery",
       });
 
-      console.log("verifyOtp Ergebnis:", data, error);
+      console.log("verifyOtp Ergebnis:", verifyData, verifyError);
 
-      if (error) {
+      if (verifyError) {
+        setErrorMessage("Token ungültig oder abgelaufen.");
         setLoading(false);
-        setErrorMsg("Token ungültig oder abgelaufen.");
         return;
       }
 
-      // 2️⃣ Neues Passwort setzen
+      // 2️⃣ Passwort aktualisieren
       console.log("updateUser gestartet…");
-
       const { error: updateError } = await supabase.auth.updateUser({
-        password,
+        password: password,
       });
 
       if (updateError) {
+        console.error(updateError);
+        setErrorMessage("Fehler beim Speichern. Bitte erneut versuchen.");
         setLoading(false);
-        setErrorMsg("Fehler beim Speichern. Bitte erneut versuchen.");
         return;
       }
 
-      // 3️⃣ Erfolg → Weiterleitung
-      setSuccess(true);
-      setLoading(false);
+      // Erfolg → Weiterleiten
+      navigate("/login?reset=success");
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 1200);
-    } catch (e) {
-      console.error(e);
-      setErrorMsg("Ein unerwarteter Fehler ist aufgetreten.");
-      setLoading(false);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage("Interner Fehler.");
     }
-  }
+
+    setLoading(false);
+  };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-
-      {/* Schwarzer Header */}
-      <div className="w-full bg-black py-24 text-center">
+    <div className="min-h-screen bg-white">
+      
+      {/* HERO HEADER */}
+      <div className="w-full bg-black pt-28 pb-20 text-center">
         <h1 className="text-4xl font-bold text-white">Neues Passwort setzen</h1>
-        <p className="text-gray-300 mt-2">
-          Wähle ein neues, sicheres Passwort.
-        </p>
+        <p className="text-gray-300 mt-2">Wähle ein neues, sicheres Passwort.</p>
       </div>
 
-      {/* Formular */}
-      <div className="mt-10 mb-24 mx-auto max-w-md w-full px-4">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white p-8 rounded-xl shadow-xl space-y-6"
-        >
-          {/* Passwort */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Neues Passwort
-            </label>
-            <div className="relative">
-              <input
-                type={showPw1 ? "text" : "password"}
-                value={password}
-                required
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full h-12 rounded-lg border px-4 pr-10 focus:outline-none"
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-3 text-gray-500"
-                onClick={() => setShowPw1(!showPw1)}
-              >
-                {showPw1 ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-          </div>
+      {/* CARD */}
+      <div className="max-w-md mx-auto mt-10 p-8 rounded-2xl shadow-lg bg-white">
+        <form onSubmit={handleSubmit}>
 
-          {/* Passwort wiederholen */}
-          <div>
-            <label className="block mb-1 font-medium text-gray-700">
-              Passwort wiederholen
-            </label>
-            <div className="relative">
-              <input
-                type={showPw2 ? "text" : "password"}
-                value={passwordRepeat}
-                required
-                onChange={(e) => setPasswordRepeat(e.target.value)}
-                className="w-full h-12 rounded-lg border px-4 pr-10 focus:outline-none"
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-3 text-gray-500"
-                onClick={() => setShowPw2(!showPw2)}
-              >
-                {showPw2 ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Checkbox */}
-          <div className="flex items-center space-x-2">
+          {/* PASSWORD 1 */}
+          <label className="block text-sm font-medium mb-1">Neues Passwort</label>
+          <div className="relative mb-6">
             <input
-              type="checkbox"
-              checked={confirmOwner}
-              onChange={(e) => setConfirmOwner(e.target.checked)}
-              className="h-4 w-4"
+              type={showPw1 ? "text" : "password"}
+              className="w-full border rounded-lg px-4 py-3"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
+            <div
+              onClick={() => setShowPw1(!showPw1)}
+              className="absolute right-3 top-3 cursor-pointer text-gray-500"
+            >
+              {showPw1 ? <EyeOff size={20} /> : <Eye size={20} />}
+            </div>
+          </div>
+
+          {/* PASSWORD 2 */}
+          <label className="block text-sm font-medium mb-1">Passwort wiederholen</label>
+          <div className="relative mb-6">
+            <input
+              type={showPw2 ? "text" : "password"}
+              className="w-full border rounded-lg px-4 py-3"
+              value={password2}
+              onChange={(e) => setPassword2(e.target.value)}
+            />
+            <div
+              onClick={() => setShowPw2(!showPw2)}
+              className="absolute right-3 top-3 cursor-pointer text-gray-500"
+            >
+              {showPw2 ? <EyeOff size={20} /> : <Eye size={20} />}
+            </div>
+          </div>
+
+          {/* CHECKBOX */}
+          <div className="flex items-center mb-6">
+            <input type="checkbox" className="mr-2" required />
             <span className="text-sm text-gray-700">
               Ich bestätige, dass ich der Inhaber dieses Kontos bin.
             </span>
           </div>
 
-          {/* Fehler */}
-          {errorMsg && (
-            <p className="text-red-600 text-sm text-center">{errorMsg}</p>
+          {/* ERROR */}
+          {errorMessage && (
+            <p className="text-red-600 text-sm mb-4">{errorMessage}</p>
           )}
 
-          {/* Erfolg */}
-          {success && (
-            <p className="text-green-600 text-center">
-              Passwort erfolgreich gespeichert!
-            </p>
-          )}
-
-          {/* Submit */}
+          {/* BUTTON */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-12 rounded-lg bg-[#7EB6B8] text-white font-semibold disabled:opacity-60"
+            className="w-full bg-[#7eb6b8] text-white py-3 rounded-xl text-center font-medium hover:opacity-90"
           >
-            {loading ? "Passwort wird gespeichert …" : "Passwort speichern →"}
+            {loading ? "Passwort wird gespeichert…" : "Passwort speichern →"}
           </button>
 
-          <div className="text-center mt-4">
-            <a href="/login" className="text-sm text-gray-500 hover:underline">
-              Zurück zum Login
-            </a>
-          </div>
         </form>
+
+        <button
+          onClick={() => navigate("/login")}
+          className="mt-4 text-center w-full text-gray-500 text-sm"
+        >
+          Zurück zum Login
+        </button>
       </div>
     </div>
   );
