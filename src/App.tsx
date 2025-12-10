@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import { supabase } from "./supabase/supabaseClient"; // ✔ korrekt für dein Projekt
+import { supabase } from "./supabase/supabaseClient";
 
 // 🔐 Protected
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -91,12 +91,14 @@ export default function App() {
   }, [location.pathname]);
 
 
-  // 🔥 Auto-Login Listener für Reset-Password / Invite / Magic Link
+  // 🔥 FIXED: Auto-Redirect darf NICHT auf der Reset-Password-Seite triggern!
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      // das "_" ignoriert den ersten Parameter → kein Fehler
       (_: AuthChangeEvent, session: Session | null) => {
-        if (session) {
+        const isResetPage =
+          window.location.pathname.includes("reset-password");
+
+        if (session && !isResetPage) {
           window.location.href = "/dashboard/overview";
         }
       }
