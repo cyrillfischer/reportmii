@@ -9,6 +9,7 @@ type ViewState = "checking" | "invalid" | "ready" | "saving" | "done";
 export default function ResetPassword() {
   const [view, setView] = useState<ViewState>("checking");
   const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -34,13 +35,12 @@ export default function ResetPassword() {
 
       if (error) {
         console.error("verifyOtp error", error);
-        setErrorMsg(
-          error.message || "Der Passwort-Link ist abgelaufen oder ungültig."
-        );
+        setErrorMsg("Der Passwort-Link ist abgelaufen oder ungültig.");
         setView("invalid");
         return;
       }
 
+      // Jetzt ist der User temporär eingeloggt
       setView("ready");
     };
 
@@ -51,7 +51,12 @@ export default function ResetPassword() {
     if (view !== "ready") return;
 
     if (!password || password.length < 6) {
-      setErrorMsg("Bitte gib ein neues Passwort mit mindestens 6 Zeichen ein.");
+      setErrorMsg("Das Passwort muss mindestens 6 Zeichen haben.");
+      return;
+    }
+
+    if (password !== password2) {
+      setErrorMsg("Die beiden Passwörter stimmen nicht überein.");
       return;
     }
 
@@ -72,36 +77,43 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-gray-900">
+      {/* HEADER SECTION */}
       <section className="pt-40 pb-24 text-center bg-black text-white">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-5xl md:text-6xl font-semibold mb-4"
+          className="text-5xl md:text-6xl font-semibold mb-4 text-white"
         >
           Neues Passwort setzen
         </motion.h1>
 
         <p className="text-white/70 max-w-xl mx-auto text-lg">
-          Wähle ein neues, sicheres Passwort.
+          Wähle ein neues, sicheres Passwort und bestätige es unten.
         </p>
       </section>
 
+      {/* CONTENT */}
       <section className="py-24 px-6">
         <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
+          
+          {/* Checking */}
           {view === "checking" && (
             <p className="text-center text-gray-600">Link wird geprüft …</p>
           )}
 
+          {/* Invalid */}
           {view === "invalid" && (
             <div className="text-center">
               <p className="text-red-500 font-medium mb-2">
-                {errorMsg || "Der Passwort-Link ist ungültig oder abgelaufen."}
+                {errorMsg}
               </p>
             </div>
           )}
 
+          {/* Ready / Saving */}
           {(view === "ready" || view === "saving") && (
             <>
+              {/* Passwort */}
               <label className="block text-left mb-6">
                 <span className="text-gray-700 font-medium flex items-center gap-2">
                   <Lock size={20} className="text-[#7eb6b8]" />
@@ -114,6 +126,22 @@ export default function ResetPassword() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Neues Passwort eingeben"
+                />
+              </label>
+
+              {/* Passwort wiederholen */}
+              <label className="block text-left mb-6">
+                <span className="text-gray-700 font-medium flex items-center gap-2">
+                  <Lock size={20} className="text-[#7eb6b8]" />
+                  Passwort wiederholen
+                </span>
+
+                <input
+                  type="password"
+                  className="mt-3 w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#7eb6b8] focus:outline-none"
+                  value={password2}
+                  onChange={(e) => setPassword2(e.target.value)}
+                  placeholder="Passwort erneut eingeben"
                 />
               </label>
 
@@ -137,12 +165,13 @@ export default function ResetPassword() {
             </>
           )}
 
+          {/* DONE */}
           {view === "done" && (
             <div className="text-center">
               <Lock size={48} className="mx-auto mb-4 text-[#7eb6b8]" />
               <h2 className="text-2xl font-semibold mb-2">Passwort geändert!</h2>
               <p className="text-gray-600 mb-6">
-                Du kannst dich jetzt mit deinem neuen Passwort einloggen.
+                Dein Passwort wurde erfolgreich aktualisiert.
               </p>
 
               <button
@@ -153,6 +182,7 @@ export default function ResetPassword() {
               </button>
             </div>
           )}
+
         </div>
       </section>
     </div>
