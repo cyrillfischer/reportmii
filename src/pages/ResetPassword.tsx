@@ -17,45 +17,39 @@ export default function ResetPassword() {
   const [confirmed, setConfirmed] = useState(false);
 
   // ------------------------------------------------------
-  // 1. Token prüfen → temporäre Session erzeugen
+  // Token prüfen (Recovery-Link)
   // ------------------------------------------------------
   useEffect(() => {
-    const run = async () => {
+    const verify = async () => {
       if (!token_hash || type !== "recovery") {
-        setErrorMsg("Ungültiger Link.");
+        setErrorMsg("Ungültiger oder abgelaufener Link.");
         return;
       }
 
-      console.log("verifyOtp gestartet…");
-
-      const { data, error } = await supabase.auth.verifyOtp({
+      const { error } = await supabase.auth.verifyOtp({
         type: "recovery",
         token_hash,
       });
 
       if (error) {
-        console.log("verifyOtp Fehler:", error);
         setErrorMsg("Token ungültig oder abgelaufen.");
-        return;
       }
-
-      console.log("verifyOtp erfolgreich → temporäre Session aktiv:", data);
     };
 
-    run();
+    verify();
   }, [token_hash, type]);
 
   // ------------------------------------------------------
-  // 2. Passwort speichern
+  // Passwort setzen
   // ------------------------------------------------------
   const handleSave = async () => {
     if (!confirmed) {
-      setErrorMsg("Bitte bestätigen.");
+      setErrorMsg("Bitte bestätige die Checkbox.");
       return;
     }
 
     if (password.length < 6) {
-      setErrorMsg("Passwort muss min. 6 Zeichen haben.");
+      setErrorMsg("Passwort muss mindestens 6 Zeichen haben.");
       return;
     }
 
@@ -67,8 +61,6 @@ export default function ResetPassword() {
     setLoading(true);
     setErrorMsg("");
 
-    console.log("Setze Passwort…");
-
     const { error } = await supabase.auth.updateUser({
       password,
     });
@@ -76,22 +68,28 @@ export default function ResetPassword() {
     setLoading(false);
 
     if (error) {
-      console.log("updateUser Fehler:", error);
-      setErrorMsg("Fehler beim Speichern. Bitte erneut versuchen.");
+      setErrorMsg("Fehler beim Speichern des Passworts.");
       return;
     }
 
+    // ✅ Erfolgreich → Session bewusst beenden
+    await supabase.auth.signOut();
+
     setSuccess(true);
 
-    // Weiterleitung nach 2 Sekunden
-    setTimeout(() => navigate("/login"), 2000);
+    // ✅ IMMER zurück zum Login
+    setTimeout(() => {
+      navigate("/login", { replace: true });
+    }, 1500);
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Schwarzer Header */}
+      {/* Header */}
       <div className="w-full bg-black pt-24 pb-24 text-center">
-        <h1 className="text-white text-4xl font-bold">Neues Passwort setzen</h1>
+        <h1 className="text-white text-4xl font-bold">
+          Neues Passwort setzen
+        </h1>
         <p className="text-gray-300 mt-2">
           Wähle ein neues, sicheres Passwort.
         </p>
@@ -99,7 +97,6 @@ export default function ResetPassword() {
 
       {/* Card */}
       <div className="max-w-lg mx-auto -mt-20 bg-white shadow-xl rounded-xl p-10">
-        
         <div className="mb-6">
           <label className="text-sm font-semibold">Neues Passwort</label>
           <input
@@ -111,7 +108,9 @@ export default function ResetPassword() {
         </div>
 
         <div className="mb-6">
-          <label className="text-sm font-semibold">Passwort wiederholen</label>
+          <label className="text-sm font-semibold">
+            Passwort wiederholen
+          </label>
           <input
             type="password"
             value={password2}
@@ -137,7 +136,7 @@ export default function ResetPassword() {
 
         {success && (
           <p className="text-green-600 font-semibold mb-4">
-            Passwort gespeichert! Weiterleitung…
+            Passwort gespeichert. Weiterleitung…
           </p>
         )}
 
@@ -146,7 +145,9 @@ export default function ResetPassword() {
           disabled={loading}
           className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
         >
-          {loading ? "Passwort wird gespeichert …" : "Passwort speichern →"}
+          {loading
+            ? "Passwort wird gespeichert …"
+            : "Passwort speichern →"}
         </button>
 
         <button
