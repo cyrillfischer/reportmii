@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
@@ -11,14 +11,11 @@ export default function ResetPassword() {
 
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [tokenChecked, setTokenChecked] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [tokenValid, setTokenValid] = useState(false);
 
-  // -----------------------------
-  // Token EINMAL prüfen
-  // -----------------------------
   useEffect(() => {
     const verify = async () => {
       if (!token_hash || type !== "recovery") {
@@ -36,17 +33,14 @@ export default function ResetPassword() {
         return;
       }
 
-      setTokenChecked(true);
+      setTokenValid(true);
     };
 
     verify();
   }, [token_hash, type]);
 
-  // -----------------------------
-  // Passwort speichern → LOGIN
-  // -----------------------------
   const handleSave = async () => {
-    if (!tokenChecked) return;
+    if (!tokenValid) return;
 
     if (!confirmed) {
       setErrorMsg("Bitte bestätigen.");
@@ -66,21 +60,16 @@ export default function ResetPassword() {
     setLoading(true);
     setErrorMsg("");
 
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
+    const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
       setLoading(false);
-      setErrorMsg("Fehler beim Speichern.");
+      setErrorMsg("Fehler beim Speichern des Passworts.");
       return;
     }
 
-    // WICHTIG: Session beenden
-    await supabase.auth.signOut();
-
-    // HARTE Weiterleitung → Login
-    window.location.href = "/login";
+    // ✅ HARTER, STABILER REDIRECT
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -134,14 +123,14 @@ export default function ResetPassword() {
 
         <button
           onClick={handleSave}
-          disabled={loading || !tokenChecked}
+          disabled={loading || !tokenValid}
           className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
         >
           {loading ? "Passwort wird gespeichert …" : "Passwort speichern →"}
         </button>
 
         <button
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/login", { replace: true })}
           className="mt-6 text-center w-full text-gray-500 underline"
         >
           Zurück zum Login
