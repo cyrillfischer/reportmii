@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
-  const navigate = useNavigate();
   const [params] = useSearchParams();
 
   const token_hash = params.get("token_hash");
@@ -11,28 +10,20 @@ export default function ResetPassword() {
 
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
-    const verify = async () => {
-      if (!token_hash || type !== "recovery") {
-        setErrorMsg("Ungültiger oder abgelaufener Link.");
-        return;
-      }
+    if (!token_hash || type !== "recovery") {
+      setErrorMsg("Ungültiger oder abgelaufener Link.");
+      return;
+    }
 
-      const { error } = await supabase.auth.verifyOtp({
-        type: "recovery",
-        token_hash,
-      });
-
-      if (error) {
-        setErrorMsg("Token ungültig oder abgelaufen.");
-      }
-    };
-
-    verify();
+    supabase.auth.verifyOtp({
+      type: "recovery",
+      token_hash,
+    });
   }, [token_hash, type]);
 
   const handleSave = async () => {
@@ -54,22 +45,26 @@ export default function ResetPassword() {
     setLoading(true);
     setErrorMsg("");
 
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
 
     if (error) {
       setLoading(false);
-      setErrorMsg("Fehler beim Speichern des Passworts.");
+      setErrorMsg("Fehler beim Speichern.");
       return;
     }
 
-    await supabase.auth.signOut();
-    navigate("/login", { replace: true });
+    // 🔥 WICHTIG: harter Redirect (kein navigate!)
+    window.location.href = "/login";
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <div className="w-full bg-black pt-24 pb-24 text-center">
-        <h1 className="text-white text-4xl font-bold">Neues Passwort setzen</h1>
+        <h1 className="text-white text-4xl font-bold">
+          Neues Passwort setzen
+        </h1>
         <p className="text-gray-300 mt-2">
           Wähle ein neues, sicheres Passwort.
         </p>
@@ -117,13 +112,6 @@ export default function ResetPassword() {
           className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
         >
           {loading ? "Passwort wird gespeichert …" : "Passwort speichern →"}
-        </button>
-
-        <button
-          onClick={() => navigate("/login")}
-          className="mt-6 text-center w-full text-gray-500 underline"
-        >
-          Zurück zum Login
         </button>
       </div>
     </div>
