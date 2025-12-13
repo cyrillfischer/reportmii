@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
@@ -11,10 +11,9 @@ export default function ResetPassword() {
 
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [verified, setVerified] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
     const verify = async () => {
@@ -30,23 +29,15 @@ export default function ResetPassword() {
 
       if (error) {
         setErrorMsg("Token ungültig oder abgelaufen.");
-        return;
       }
-
-      setVerified(true);
     };
 
     verify();
   }, [token_hash, type]);
 
   const handleSave = async () => {
-    if (!verified) {
-      setErrorMsg("Token nicht gültig.");
-      return;
-    }
-
     if (!confirmed) {
-      setErrorMsg("Bitte bestätige die Checkbox.");
+      setErrorMsg("Bitte bestätigen.");
       return;
     }
 
@@ -63,9 +54,7 @@ export default function ResetPassword() {
     setLoading(true);
     setErrorMsg("");
 
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
+    const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
       setLoading(false);
@@ -73,19 +62,14 @@ export default function ResetPassword() {
       return;
     }
 
-    // 🔐 Session sauber beenden
     await supabase.auth.signOut();
-
-    // 🔁 Harter Redirect – kein Timeout, kein State-Abhängigkeitsproblem
-    window.location.href = "/login";
+    navigate("/login", { replace: true });
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <div className="w-full bg-black pt-24 pb-24 text-center">
-        <h1 className="text-white text-4xl font-bold">
-          Neues Passwort setzen
-        </h1>
+        <h1 className="text-white text-4xl font-bold">Neues Passwort setzen</h1>
         <p className="text-gray-300 mt-2">
           Wähle ein neues, sicheres Passwort.
         </p>
@@ -103,9 +87,7 @@ export default function ResetPassword() {
         </div>
 
         <div className="mb-6">
-          <label className="text-sm font-semibold">
-            Passwort wiederholen
-          </label>
+          <label className="text-sm font-semibold">Passwort wiederholen</label>
           <input
             type="password"
             value={password2}
@@ -138,7 +120,7 @@ export default function ResetPassword() {
         </button>
 
         <button
-          onClick={() => (window.location.href = "/login")}
+          onClick={() => navigate("/login")}
           className="mt-6 text-center w-full text-gray-500 underline"
         >
           Zurück zum Login
