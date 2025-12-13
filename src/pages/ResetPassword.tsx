@@ -11,9 +11,10 @@ export default function ResetPassword() {
 
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [verified, setVerified] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
     const verify = async () => {
@@ -29,15 +30,23 @@ export default function ResetPassword() {
 
       if (error) {
         setErrorMsg("Token ungültig oder abgelaufen.");
+        return;
       }
+
+      setVerified(true);
     };
 
     verify();
   }, [token_hash, type]);
 
   const handleSave = async () => {
+    if (!verified) {
+      setErrorMsg("Token nicht gültig.");
+      return;
+    }
+
     if (!confirmed) {
-      setErrorMsg("Bitte bestätigen.");
+      setErrorMsg("Bitte bestätige die Checkbox.");
       return;
     }
 
@@ -54,18 +63,20 @@ export default function ResetPassword() {
     setLoading(true);
     setErrorMsg("");
 
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
 
     if (error) {
       setLoading(false);
-      setErrorMsg("Fehler beim Speichern.");
+      setErrorMsg("Fehler beim Speichern des Passworts.");
       return;
     }
 
-    // 🔴 WICHTIG: Recovery-Session sofort beenden
+    // 🔐 Session sauber beenden
     await supabase.auth.signOut();
 
-    // 🔴 HARTE Weiterleitung (kein React State mehr)
+    // 🔁 Harter Redirect – kein Timeout, kein State-Abhängigkeitsproblem
     window.location.href = "/login";
   };
 
