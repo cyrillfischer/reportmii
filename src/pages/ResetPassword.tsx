@@ -1,46 +1,29 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
-  const [params] = useSearchParams();
-
-  const token_hash = params.get("token_hash");
-  const type = params.get("type");
+  const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [ready, setReady] = useState(false);
+  const [success, setSuccess] = useState(false);
 
+  // 🔒 Sicherstellen, dass eine Recovery-Session existiert
   useEffect(() => {
-    const run = async () => {
-      if (!token_hash || type !== "recovery") {
-        setErrorMsg("Ungültiger oder abgelaufener Link.");
-        return;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        navigate("/login");
       }
-
-      const { error } = await supabase.auth.verifyOtp({
-        type: "recovery",
-        token_hash,
-      });
-
-      if (error) {
-        setErrorMsg("Token ungültig oder abgelaufen.");
-        return;
-      }
-
-      setReady(true);
-    };
-
-    run();
-  }, [token_hash, type]);
+    });
+  }, [navigate]);
 
   const handleSave = async () => {
     if (!confirmed) {
-      setErrorMsg("Bitte bestätige die Checkbox.");
+      setErrorMsg("Bitte bestätige, dass du der Kontoinhaber bist.");
       return;
     }
 
@@ -59,27 +42,28 @@ export default function ResetPassword() {
 
     const { error } = await supabase.auth.updateUser({ password });
 
+    setLoading(false);
+
     if (error) {
-      setLoading(false);
       setErrorMsg("Fehler beim Speichern des Passworts.");
       return;
     }
 
-    // ABSOLUT WICHTIG:
-    // kompletter Reload, kein navigate()
-    window.location.href = "/login";
-  };
+    setSuccess(true);
 
-  if (!ready) {
-    return null;
-  }
+    // 🔑 Session sauber beenden
+    await supabase.auth.signOut();
+
+    // 🔁 HARTE Weiterleitung (kein Router-Zustand!)
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 1200);
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <div className="w-full bg-black pt-24 pb-24 text-center">
-        <h1 className="text-white text-4xl font-bold">
-          Neues Passwort setzen
-        </h1>
+        <h1 className="text-white text-4xl font-bold">Neues Passwort setzen</h1>
         <p className="text-gray-300 mt-2">
           Wähle ein neues, sicheres Passwort.
         </p>
@@ -90,21 +74,19 @@ export default function ResetPassword() {
           <label className="text-sm font-semibold">Neues Passwort</label>
           <input
             type="password"
-            className="w-full border rounded-lg mt-2 px-4 py-3"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full border rounded-lg mt-2 px-4 py-3"
           />
         </div>
 
         <div className="mb-6">
-          <label className="text-sm font-semibold">
-            Passwort wiederholen
-          </label>
+          <label className="text-sm font-semibold">Passwort wiederholen</label>
           <input
             type="password"
-            className="w-full border rounded-lg mt-2 px-4 py-3"
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}
+            className="w-full border rounded-lg mt-2 px-4 py-3"
           />
         </div>
 
@@ -121,6 +103,12 @@ export default function ResetPassword() {
 
         {errorMsg && (
           <p className="text-red-500 text-sm mb-4">{errorMsg}</p>
+        )}
+
+        {success && (
+          <p className="text-green-600 font-semibold mb-4">
+            Passwort gespeichert. Weiterleitung…
+          </p>
         )}
 
         <button
