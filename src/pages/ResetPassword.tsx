@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
+  const navigate = useNavigate();
   const [params] = useSearchParams();
 
   const token_hash = params.get("token_hash");
@@ -10,23 +11,43 @@ export default function ResetPassword() {
 
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [confirmed, setConfirmed] = useState(false);
+  const [tokenChecked, setTokenChecked] = useState(false);
 
+  // -----------------------------
+  // Token EINMAL prüfen
+  // -----------------------------
   useEffect(() => {
-    if (!token_hash || type !== "recovery") {
-      setErrorMsg("Ungültiger oder abgelaufener Link.");
-      return;
-    }
+    const verify = async () => {
+      if (!token_hash || type !== "recovery") {
+        setErrorMsg("Ungültiger oder abgelaufener Link.");
+        return;
+      }
 
-    supabase.auth.verifyOtp({
-      type: "recovery",
-      token_hash,
-    });
+      const { error } = await supabase.auth.verifyOtp({
+        type: "recovery",
+        token_hash,
+      });
+
+      if (error) {
+        setErrorMsg("Token ungültig oder abgelaufen.");
+        return;
+      }
+
+      setTokenChecked(true);
+    };
+
+    verify();
   }, [token_hash, type]);
 
+  // -----------------------------
+  // Passwort speichern → LOGIN
+  // -----------------------------
   const handleSave = async () => {
+    if (!tokenChecked) return;
+
     if (!confirmed) {
       setErrorMsg("Bitte bestätigen.");
       return;
@@ -55,7 +76,10 @@ export default function ResetPassword() {
       return;
     }
 
-    // 🔥 WICHTIG: harter Redirect (kein navigate!)
+    // WICHTIG: Session beenden
+    await supabase.auth.signOut();
+
+    // HARTE Weiterleitung → Login
     window.location.href = "/login";
   };
 
@@ -82,7 +106,9 @@ export default function ResetPassword() {
         </div>
 
         <div className="mb-6">
-          <label className="text-sm font-semibold">Passwort wiederholen</label>
+          <label className="text-sm font-semibold">
+            Passwort wiederholen
+          </label>
           <input
             type="password"
             value={password2}
@@ -108,10 +134,17 @@ export default function ResetPassword() {
 
         <button
           onClick={handleSave}
-          disabled={loading}
+          disabled={loading || !tokenChecked}
           className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
         >
           {loading ? "Passwort wird gespeichert …" : "Passwort speichern →"}
+        </button>
+
+        <button
+          onClick={() => navigate("/login")}
+          className="mt-6 text-center w-full text-gray-500 underline"
+        >
+          Zurück zum Login
         </button>
       </div>
     </div>
