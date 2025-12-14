@@ -9,22 +9,19 @@ export default function ResetPassword() {
   const [password2, setPassword2] = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
-  const [status, setStatus] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
+  const [ready, setReady] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // 🔑 KORREKT: Recovery-Session mit verifyOtp herstellen
+  // ✅ Recovery-Session herstellen (EINMAL)
   useEffect(() => {
-    const initRecovery = async () => {
+    const init = async () => {
       const params = new URLSearchParams(window.location.search);
       const tokenHash = params.get("token_hash");
-      const type = params.get("type");
 
-      if (!tokenHash || type !== "recovery") {
-        setErrorMessage("Der Passwort-Link ist ungültig oder abgelaufen.");
-        setStatus("error");
+      if (!tokenHash) {
+        setError("Der Passwort-Link ist ungültig oder abgelaufen.");
         return;
       }
 
@@ -34,52 +31,49 @@ export default function ResetPassword() {
       });
 
       if (error) {
-        console.error("verifyOtp error:", error);
-        setErrorMessage("Der Passwort-Link ist ungültig oder abgelaufen.");
-        setStatus("error");
+        setError("Der Passwort-Link ist ungültig oder abgelaufen.");
+        return;
       }
+
+      setReady(true);
     };
 
-    initRecovery();
+    init();
   }, []);
 
-  const handleSave = async () => {
-    if (status !== "idle") return;
+  // ✅ Passwort speichern (kann NICHT hängen bleiben)
+  const savePassword = async () => {
+    if (saving || saved) return;
 
-    setErrorMessage(null);
+    setError(null);
 
     if (!confirmed) {
-      setErrorMessage("Bitte bestätige, dass du der Inhaber dieses Kontos bist.");
-      setStatus("error");
+      setError("Bitte bestätige die Checkbox.");
       return;
     }
 
     if (password.length < 6) {
-      setErrorMessage("Das Passwort muss mindestens 6 Zeichen lang sein.");
-      setStatus("error");
+      setError("Das Passwort muss mindestens 6 Zeichen lang sein.");
       return;
     }
 
     if (password !== password2) {
-      setErrorMessage("Die Passwörter stimmen nicht überein.");
-      setStatus("error");
+      setError("Die Passwörter stimmen nicht überein.");
       return;
     }
 
-    setStatus("loading");
+    setSaving(true);
 
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
+    const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      console.error("updateUser error:", error);
-      setErrorMessage("Fehler beim Speichern des Passworts.");
-      setStatus("error");
+      setError("Fehler beim Speichern des Passworts.");
+      setSaving(false);
       return;
     }
 
-    setStatus("success");
+    setSaving(false);
+    setSaved(true);
   };
 
   return (
@@ -88,70 +82,78 @@ export default function ResetPassword() {
         <h1 className="text-2xl font-semibold text-center mb-2">
           Neues Passwort setzen
         </h1>
-        <p className="text-sm text-gray-500 text-center mb-8">
-          Wähle ein neues, sicheres Passwort.
-        </p>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">
-            Neues Passwort
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border rounded-lg px-4 py-2"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">
-            Passwort wiederholen
-          </label>
-          <input
-            type="password"
-            value={password2}
-            onChange={(e) => setPassword2(e.target.value)}
-            className="w-full border rounded-lg px-4 py-2"
-          />
-        </div>
-
-        <div className="flex items-center mb-6">
-          <input
-            type="checkbox"
-            checked={confirmed}
-            onChange={(e) => setConfirmed(e.target.checked)}
-            className="mr-2"
-          />
-          <span className="text-sm text-gray-600">
-            Ich bestätige, dass ich der Inhaber dieses Kontos bin.
-          </span>
-        </div>
-
-        {status === "error" && errorMessage && (
-          <p className="text-sm text-red-600 mb-4">{errorMessage}</p>
+        {!ready && !error && (
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Link wird geprüft…
+          </p>
         )}
 
-        <button
-          onClick={handleSave}
-          disabled={status === "loading"}
-          className="w-full bg-black text-white rounded-lg py-3 font-medium disabled:opacity-50"
-        >
-          {status === "loading" ? "Speichern..." : "Passwort speichern →"}
-        </button>
+        {error && (
+          <p className="text-sm text-red-600 mt-6 text-center">{error}</p>
+        )}
 
-        {status === "success" && (
-          <div className="mt-6 text-center">
-            <p className="text-green-600 font-medium">
-              Passwort wurde gespeichert.
-            </p>
+        {ready && (
+          <>
+            <div className="mt-6">
+              <label className="block text-sm font-medium mb-1">
+                Neues Passwort
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full border rounded-lg px-4 py-2"
+              />
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium mb-1">
+                Passwort wiederholen
+              </label>
+              <input
+                type="password"
+                value={password2}
+                onChange={(e) => setPassword2(e.target.value)}
+                className="w-full border rounded-lg px-4 py-2"
+              />
+            </div>
+
+            <div className="flex items-center mt-6">
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(e) => setConfirmed(e.target.checked)}
+                className="mr-2"
+              />
+              <span className="text-sm text-gray-600">
+                Ich bestätige, dass ich der Inhaber dieses Kontos bin.
+              </span>
+            </div>
+
             <button
-              onClick={() => navigate("/login")}
-              className="mt-3 underline text-sm text-gray-600"
+              onClick={savePassword}
+              disabled={saving || saved}
+              className="w-full mt-6 bg-black text-white rounded-lg py-3 font-medium disabled:opacity-50"
             >
-              Zurück zum Login
+              {saving
+                ? "Speichern…"
+                : saved
+                ? "Passwort wurde gespeichert"
+                : "Passwort speichern →"}
             </button>
-          </div>
+
+            {saved && (
+              <div className="text-center mt-4">
+                <button
+                  onClick={() => navigate("/login")}
+                  className="text-sm underline text-gray-600"
+                >
+                  Zurück zum Login
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
