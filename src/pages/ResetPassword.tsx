@@ -19,10 +19,10 @@ export default function ResetPassword() {
 
   const [errorMsg, setErrorMsg] = useState("");
 
+  // 1️⃣ OTP verifizieren → Session herstellen
   useEffect(() => {
     const verify = async () => {
       if (!token_hash || type !== "recovery") {
-        setStatus("error");
         setErrorMsg("Ungültiger oder abgelaufener Link.");
         return;
       }
@@ -33,14 +33,14 @@ export default function ResetPassword() {
       });
 
       if (error) {
-        setStatus("error");
-        setErrorMsg("Token ungültig oder abgelaufen.");
+        setErrorMsg("Link ist ungültig oder abgelaufen.");
       }
     };
 
     verify();
   }, [token_hash, type]);
 
+  // 2️⃣ Passwort setzen
   const handleSave = async () => {
     if (status !== "idle") return;
 
@@ -50,7 +50,7 @@ export default function ResetPassword() {
     }
 
     if (password.length < 6) {
-      setErrorMsg("Passwort mindestens 6 Zeichen.");
+      setErrorMsg("Passwort muss mindestens 6 Zeichen haben.");
       return;
     }
 
@@ -62,7 +62,9 @@ export default function ResetPassword() {
     setStatus("loading");
     setErrorMsg("");
 
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
 
     if (error) {
       setStatus("error");
@@ -70,7 +72,7 @@ export default function ResetPassword() {
       return;
     }
 
-    // WICHTIG: Session beenden → Login danach möglich
+    // 3️⃣ WICHTIG: Session beenden, damit Login sauber funktioniert
     await supabase.auth.signOut();
 
     setStatus("success");
@@ -79,7 +81,9 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <div className="w-full bg-black pt-24 pb-24 text-center">
-        <h1 className="text-white text-4xl font-bold">Neues Passwort setzen</h1>
+        <h1 className="text-white text-4xl font-bold">
+          Neues Passwort setzen
+        </h1>
         <p className="text-gray-300 mt-2">
           Wähle ein neues, sicheres Passwort.
         </p>
@@ -120,31 +124,39 @@ export default function ResetPassword() {
                 Ich bestätige, dass ich der Inhaber dieses Kontos bin.
               </span>
             </div>
+
+            {errorMsg && (
+              <p className="text-red-500 text-sm mb-4">{errorMsg}</p>
+            )}
+
+            <button
+              onClick={handleSave}
+              disabled={status === "loading"}
+              className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
+            >
+              {status === "idle" && "Passwort speichern →"}
+              {status === "loading" && "Passwort wird gespeichert …"}
+              {status === "error" && "Erneut versuchen"}
+            </button>
           </>
         )}
 
-        {errorMsg && (
-          <p className="text-red-500 text-sm mb-4">{errorMsg}</p>
-        )}
-
-        <button
-          onClick={status === "success" ? () => navigate("/login") : handleSave}
-          disabled={status === "loading"}
-          className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
-        >
-          {status === "idle" && "Passwort speichern →"}
-          {status === "loading" && "Passwort wird gespeichert …"}
-          {status === "success" && "Passwort gespeichert ✓"}
-          {status === "error" && "Erneut versuchen →"}
-        </button>
-
         {status === "success" && (
-          <button
-            onClick={() => navigate("/login")}
-            className="mt-6 text-center w-full text-gray-500 underline"
-          >
-            Zurück zum Login
-          </button>
+          <>
+            <button
+              className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold"
+              disabled
+            >
+              Passwort gespeichert ✓
+            </button>
+
+            <button
+              onClick={() => navigate("/login")}
+              className="mt-6 w-full text-center underline text-gray-600"
+            >
+              Zurück zum Login
+            </button>
+          </>
         )}
       </div>
     </div>
