@@ -1,9 +1,13 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+
+  const token_hash = params.get("token_hash");
+  const type = params.get("type");
 
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
@@ -13,11 +17,20 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSave = async () => {
-    if (success) {
-      navigate("/login");
+  useEffect(() => {
+    if (!token_hash || type !== "recovery") {
+      setErrorMsg("Ungültiger oder abgelaufener Link.");
       return;
     }
+
+    supabase.auth.verifyOtp({
+      type: "recovery",
+      token_hash,
+    });
+  }, [token_hash, type]);
+
+  const handleSave = async () => {
+    if (loading || success) return;
 
     if (!confirmed) {
       setErrorMsg("Bitte bestätigen.");
@@ -46,12 +59,13 @@ export default function ResetPassword() {
       return;
     }
 
+    // ✅ DAS ist der entscheidende Punkt
     setSuccess(true);
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <div className="w-full bg-black py-24 text-center">
+      <div className="w-full bg-black pt-24 pb-24 text-center">
         <h1 className="text-white text-4xl font-bold">Neues Passwort setzen</h1>
         <p className="text-gray-300 mt-2">
           Wähle ein neues, sicheres Passwort.
@@ -64,6 +78,7 @@ export default function ResetPassword() {
           <input
             type="password"
             value={password}
+            disabled={success}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full border rounded-lg mt-2 px-4 py-3"
           />
@@ -74,6 +89,7 @@ export default function ResetPassword() {
           <input
             type="password"
             value={password2}
+            disabled={success}
             onChange={(e) => setPassword2(e.target.value)}
             className="w-full border rounded-lg mt-2 px-4 py-3"
           />
@@ -83,6 +99,7 @@ export default function ResetPassword() {
           <input
             type="checkbox"
             checked={confirmed}
+            disabled={success}
             onChange={(e) => setConfirmed(e.target.checked)}
           />
           <span className="text-sm">
@@ -96,21 +113,26 @@ export default function ResetPassword() {
 
         {success && (
           <p className="text-green-600 font-semibold mb-4">
-            Dein Passwort wurde erfolgreich geändert.
+            Passwort erfolgreich gespeichert.
           </p>
         )}
 
-        <button
-          onClick={handleSave}
-          disabled={loading}
-          className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
-        >
-          {loading
-            ? "Passwort wird gespeichert …"
-            : success
-            ? "Zum Login →"
-            : "Passwort speichern →"}
-        </button>
+        {!success ? (
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
+          >
+            {loading ? "Passwort wird gespeichert …" : "Passwort speichern →"}
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate("/login")}
+            className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold"
+          >
+            Zurück zum Login →
+          </button>
+        )}
 
         {!success && (
           <button
