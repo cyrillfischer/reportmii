@@ -1,35 +1,53 @@
-import { useUser } from "../contexts/UserContext";
-import { Sidebar } from "../components/Sidebar"; // falls vorhanden
-import { Header } from "../components/Header";  // optional
+import { useEffect, useState } from "react";
+import { supabase } from "../supabase/supabaseClient";
+import { Sidebar } from "../components/Sidebar";
+import { Header } from "../components/Header";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading } = useUser();
+  const [loading, setLoading] = useState(true);
+  const [hasUser, setHasUser] = useState(false);
 
-  if (loading)
+  useEffect(() => {
+    let isMounted = true;
+
+    const init = async () => {
+      const { data, error } = await supabase.auth.getUser();
+
+      if (!isMounted) return;
+
+      setHasUser(!!data?.user && !error);
+      setLoading(false);
+    };
+
+    init();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (loading) {
     return (
-      <div className="w-full h-screen flex items-center justify-center text-xl">
-        Lädt dein Dashboard...
+      <div className="w-full h-screen flex items-center justify-center text-xl text-white bg-[#0b0d10]">
+        Loading your dashboard…
       </div>
     );
+  }
 
-  if (!user) {
+  if (!hasUser) {
     return (
-      <div className="w-full h-screen flex items-center justify-center text-xl">
-        Fehler: Kein Benutzer
+      <div className="w-full h-screen flex items-center justify-center text-xl text-white bg-[#0b0d10]">
+        No active session. Please log in again.
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-[#0b0d10] text-white">
       <Sidebar />
 
-      {/* Content */}
       <div className="flex-1">
-        {/* Optional: Dashboard Header */}
         <Header />
-
         <main className="p-10">{children}</main>
       </div>
     </div>
