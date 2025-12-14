@@ -17,7 +17,9 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // 🔐 Token einmalig validieren (Session herstellen)
+  // --------------------------------------------------
+  // 1. OTP einmalig prüfen (Session setzen)
+  // --------------------------------------------------
   useEffect(() => {
     const verify = async () => {
       if (!token_hash || type !== "recovery") {
@@ -38,13 +40,14 @@ export default function ResetPassword() {
     verify();
   }, [token_hash, type]);
 
+  // --------------------------------------------------
+  // 2. Passwort speichern
+  // --------------------------------------------------
   const handleSave = async () => {
-    if (success || loading) return;
-
     setErrorMsg("");
 
     if (!confirmed) {
-      setErrorMsg("Bitte bestätige, dass du der Kontoinhaber bist.");
+      setErrorMsg("Bitte bestätige die Checkbox.");
       return;
     }
 
@@ -74,6 +77,9 @@ export default function ResetPassword() {
     setSuccess(true);
   };
 
+  // --------------------------------------------------
+  // UI
+  // --------------------------------------------------
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
@@ -88,69 +94,79 @@ export default function ResetPassword() {
 
       {/* Card */}
       <div className="max-w-lg mx-auto -mt-20 bg-white shadow-xl rounded-xl p-10">
+        {/* Passwort */}
         <div className="mb-6">
           <label className="text-sm font-semibold">Neues Passwort</label>
           <input
             type="password"
-            value={password}
             disabled={success}
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full border rounded-lg mt-2 px-4 py-3 disabled:bg-gray-100"
           />
         </div>
 
+        {/* Passwort wiederholen */}
         <div className="mb-6">
           <label className="text-sm font-semibold">
             Passwort wiederholen
           </label>
           <input
             type="password"
-            value={password2}
             disabled={success}
+            value={password2}
             onChange={(e) => setPassword2(e.target.value)}
             className="w-full border rounded-lg mt-2 px-4 py-3 disabled:bg-gray-100"
           />
         </div>
 
-        <div className="flex items-center gap-3 mb-4">
-          <input
-            type="checkbox"
-            checked={confirmed}
-            disabled={success}
-            onChange={(e) => setConfirmed(e.target.checked)}
-          />
-          <span className="text-sm">
-            Ich bestätige, dass ich der Inhaber dieses Kontos bin.
-          </span>
-        </div>
+        {/* Checkbox */}
+        {!success && (
+          <div className="flex items-center gap-3 mb-4">
+            <input
+              type="checkbox"
+              checked={confirmed}
+              onChange={(e) => setConfirmed(e.target.checked)}
+            />
+            <span className="text-sm">
+              Ich bestätige, dass ich der Inhaber dieses Kontos bin.
+            </span>
+          </div>
+        )}
 
+        {/* Fehler */}
         {errorMsg && (
           <p className="text-red-500 text-sm mb-4">{errorMsg}</p>
         )}
 
-        {/* BUTTON */}
-        {!success ? (
+        {/* SUCCESS STATE */}
+        {success ? (
+          <>
+            <button
+              disabled
+              className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold"
+            >
+              Passwort gespeichert ✓
+            </button>
+
+            <button
+              onClick={() => navigate("/login")}
+              className="mt-6 text-center w-full text-gray-600 underline"
+            >
+              Zurück zum Login
+            </button>
+          </>
+        ) : (
           <button
             onClick={handleSave}
             disabled={loading}
-            className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
+            className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
           >
-            {loading ? "Passwort wird gespeichert …" : "Passwort speichern →"}
-          </button>
-        ) : (
-          <button
-            className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold cursor-default"
-          >
-            Passwort gespeichert ✓
+            {loading
+              ? "Passwort wird gespeichert …"
+              : "Passwort speichern →"}
           </button>
         )}
-
-        <button
-          onClick={() => navigate("/login")}
-          className="mt-6 text-center w-full text-gray-500 underline"
-        >
-          Zurück zum Login
-        </button>
       </div>
     </div>
   );
