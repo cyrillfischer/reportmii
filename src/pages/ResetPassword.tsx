@@ -23,14 +23,16 @@ export default function ResetPassword() {
     const type = params.get("type");
 
     if (!tokenHash || type !== "recovery") {
-      setError("Invalid or expired reset link.");
+      setError("This password reset link is invalid or has expired.");
       return;
     }
 
     supabase.auth
       .verifyOtp({ type: "recovery", token_hash: tokenHash })
       .then(({ error }) => {
-        if (error) setError("Invalid or expired reset link.");
+        if (error) {
+          setError("This password reset link is invalid or has expired.");
+        }
       });
   }, [params]);
 
@@ -40,17 +42,17 @@ export default function ResetPassword() {
     setError(null);
 
     if (!confirmed) {
-      setError("Please confirm that you are the account owner.");
+      setError("Please confirm that you are the owner of this account.");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError("Your password must contain at least 6 characters.");
       return;
     }
 
     if (password !== password2) {
-      setError("Passwords do not match.");
+      setError("The passwords you entered do not match.");
       return;
     }
 
@@ -61,7 +63,7 @@ export default function ResetPassword() {
       if (error) throw error;
       setSaved(true);
     } catch {
-      setError("Failed to save password.");
+      setError("Something went wrong while saving your new password.");
     } finally {
       setLoading(false);
     }
@@ -70,15 +72,12 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-white">
       {/* 🔥 BLACK HEADER (like login page) */}
-      <div className="bg-black py-24 text-center text-white">
-        <div className="flex justify-center mb-4">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#7eb6b8]/20 text-[#7eb6b8]">
-            →
-          </span>
-        </div>
-        <h1 className="text-3xl font-semibold">Set new password</h1>
+      <div className="bg-black py-24 text-center">
+        <h1 className="text-3xl font-semibold text-white">
+          Reset your password
+        </h1>
         <p className="mt-2 text-white/70">
-          Choose a new, secure password to access your account.
+          Choose a new password to securely regain access to your account.
         </p>
       </div>
 
@@ -128,7 +127,7 @@ export default function ResetPassword() {
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
             />
-            <span>I confirm that I am the account owner.</span>
+            <span>I confirm that I am the owner of this account.</span>
           </div>
 
           {error && (
@@ -144,8 +143,8 @@ export default function ResetPassword() {
             {loading
               ? "Saving…"
               : saved
-              ? "Password saved"
-              : "Save password →"}
+              ? "Password successfully saved"
+              : "Save new password →"}
           </button>
 
           {/* Back to login */}
