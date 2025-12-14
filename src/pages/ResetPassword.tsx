@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
@@ -12,11 +12,14 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [confirmed, setConfirmed] = useState(false);
-
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // 🔑 DER ENTSCHEIDENDE STATE
+  const [step, setStep] = useState<"form" | "saving" | "done">("form");
+
+  // --------------------------------------------------
+  // Token einmalig prüfen (Session herstellen)
+  // --------------------------------------------------
   useEffect(() => {
     if (!token_hash || type !== "recovery") {
       setErrorMsg("Ungültiger oder abgelaufener Link.");
@@ -26,14 +29,21 @@ export default function ResetPassword() {
     supabase.auth.verifyOtp({
       type: "recovery",
       token_hash,
+    }).then(({ error }) => {
+      if (error) {
+        setErrorMsg("Token ungültig oder abgelaufen.");
+      }
     });
   }, [token_hash, type]);
 
+  // --------------------------------------------------
+  // Passwort speichern
+  // --------------------------------------------------
   const handleSave = async () => {
-    if (loading || success) return;
+    setErrorMsg("");
 
     if (!confirmed) {
-      setErrorMsg("Bitte bestätigen.");
+      setErrorMsg("Bitte bestätige den Hinweis.");
       return;
     }
 
@@ -47,20 +57,20 @@ export default function ResetPassword() {
       return;
     }
 
-    setLoading(true);
-    setErrorMsg("");
+    setStep("saving");
 
-    const { error } = await supabase.auth.updateUser({ password });
-
-    setLoading(false);
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
 
     if (error) {
       setErrorMsg("Fehler beim Speichern des Passworts.");
+      setStep("form");
       return;
     }
 
-    // ✅ DAS ist der entscheidende Punkt
-    setSuccess(true);
+    // ✅ HIER PASSIERT ENDLICH DAS, WAS DU WILLST
+    setStep("done");
   };
 
   return (
@@ -73,12 +83,13 @@ export default function ResetPassword() {
       </div>
 
       <div className="max-w-lg mx-auto -mt-20 bg-white shadow-xl rounded-xl p-10">
+
         <div className="mb-6">
           <label className="text-sm font-semibold">Neues Passwort</label>
           <input
             type="password"
             value={password}
-            disabled={success}
+            disabled={step !== "form"}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full border rounded-lg mt-2 px-4 py-3"
           />
@@ -89,7 +100,7 @@ export default function ResetPassword() {
           <input
             type="password"
             value={password2}
-            disabled={success}
+            disabled={step !== "form"}
             onChange={(e) => setPassword2(e.target.value)}
             className="w-full border rounded-lg mt-2 px-4 py-3"
           />
@@ -99,7 +110,7 @@ export default function ResetPassword() {
           <input
             type="checkbox"
             checked={confirmed}
-            disabled={success}
+            disabled={step !== "form"}
             onChange={(e) => setConfirmed(e.target.checked)}
           />
           <span className="text-sm">
@@ -111,37 +122,39 @@ export default function ResetPassword() {
           <p className="text-red-500 text-sm mb-4">{errorMsg}</p>
         )}
 
-        {success && (
-          <p className="text-green-600 font-semibold mb-4">
-            Passwort erfolgreich gespeichert.
-          </p>
-        )}
-
-        {!success ? (
+        {/* 🔘 DER FIXIERTE BUTTON */}
+        {step === "form" && (
           <button
             onClick={handleSave}
-            disabled={loading}
-            className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
-          >
-            {loading ? "Passwort wird gespeichert …" : "Passwort speichern →"}
-          </button>
-        ) : (
-          <button
-            onClick={() => navigate("/login")}
             className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold"
           >
-            Zurück zum Login →
+            Passwort speichern →
           </button>
         )}
 
-        {!success && (
+        {step === "saving" && (
           <button
-            onClick={() => navigate("/login")}
-            className="mt-6 text-center w-full text-gray-500 underline"
+            disabled
+            className="w-full bg-gray-400 text-white py-3 rounded-lg text-lg font-semibold"
           >
-            Zurück zum Login
+            Passwort wird gespeichert …
           </button>
         )}
+
+        {step === "done" && (
+          <>
+            <p className="text-green-600 font-semibold mb-4 text-center">
+              Dein Passwort wurde erfolgreich geändert.
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold"
+            >
+              Zurück zum Login →
+            </button>
+          </>
+        )}
+
       </div>
     </div>
   );
