@@ -4,24 +4,23 @@ import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [params] = useSearchParams();
 
   const [password, setPassword] = useState("");
-  const [passwordRepeat, setPasswordRepeat] = useState("");
+  const [password2, setPassword2] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+
+  const [show1, setShow1] = useState(false);
+  const [show2, setShow2] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 👁 visibility
-  const [showPw1, setShowPw1] = useState(false);
-  const [showPw2, setShowPw2] = useState(false);
-
-  // 🔑 establish recovery session ONCE
+  // 🔐 verify recovery session
   useEffect(() => {
-    const tokenHash = searchParams.get("token_hash");
-    const type = searchParams.get("type");
+    const tokenHash = params.get("token_hash");
+    const type = params.get("type");
 
     if (!tokenHash || type !== "recovery") {
       setError("Invalid or expired reset link.");
@@ -29,18 +28,13 @@ export default function ResetPassword() {
     }
 
     supabase.auth
-      .verifyOtp({
-        type: "recovery",
-        token_hash: tokenHash,
-      })
+      .verifyOtp({ type: "recovery", token_hash: tokenHash })
       .then(({ error }) => {
-        if (error) {
-          setError("Invalid or expired reset link.");
-        }
+        if (error) setError("Invalid or expired reset link.");
       });
-  }, [searchParams]);
+  }, [params]);
 
-  const handleSave = async () => {
+  const savePassword = async () => {
     if (loading || saved) return;
 
     setError(null);
@@ -51,11 +45,11 @@ export default function ResetPassword() {
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+      setError("Password must be at least 6 characters.");
       return;
     }
 
-    if (password !== passwordRepeat) {
+    if (password !== password2) {
       setError("Passwords do not match.");
       return;
     }
@@ -63,105 +57,107 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password,
-      });
-
+      const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-
       setSaved(true);
     } catch {
-      setError("Failed to save the new password.");
+      setError("Failed to save password.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-6">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-        <h1 className="mb-2 text-center text-2xl font-semibold">
-          Set new password
-        </h1>
-        <p className="mb-6 text-center text-sm text-gray-500">
-          Choose a new, secure password.
+    <div className="min-h-screen bg-white">
+      {/* 🔥 BLACK HEADER (like login page) */}
+      <div className="bg-black py-24 text-center text-white">
+        <div className="flex justify-center mb-4">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#7eb6b8]/20 text-[#7eb6b8]">
+            →
+          </span>
+        </div>
+        <h1 className="text-3xl font-semibold">Set new password</h1>
+        <p className="mt-2 text-white/70">
+          Choose a new, secure password to access your account.
         </p>
+      </div>
 
-        {/* Password */}
-        <div className="mb-4 relative">
-          <input
-            type={showPw1 ? "text" : "password"}
-            placeholder="New password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border px-4 py-3 pr-10 text-sm focus:outline-none"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPw1(!showPw1)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500"
-          >
-            {showPw1 ? "Hide" : "Show"}
-          </button>
-        </div>
-
-        {/* Repeat */}
-        <div className="mb-4 relative">
-          <input
-            type={showPw2 ? "text" : "password"}
-            placeholder="Repeat new password"
-            value={passwordRepeat}
-            onChange={(e) => setPasswordRepeat(e.target.value)}
-            className="w-full rounded-lg border px-4 py-3 pr-10 text-sm focus:outline-none"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPw2(!showPw2)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500"
-          >
-            {showPw2 ? "Hide" : "Show"}
-          </button>
-        </div>
-
-        {/* Human confirmation */}
-        <div className="mb-6 flex items-center gap-2 text-sm text-gray-600">
-          <input
-            type="checkbox"
-            checked={confirmed}
-            onChange={(e) => setConfirmed(e.target.checked)}
-          />
-          <span>I confirm that I am the account owner.</span>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <p className="mb-4 text-center text-sm text-red-600">{error}</p>
-        )}
-
-        {/* Button */}
-        <button
-          onClick={handleSave}
-          disabled={loading || saved}
-          className="w-full rounded-lg bg-black py-3 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {loading
-            ? "Saving…"
-            : saved
-            ? "Password saved"
-            : "Save password →"}
-        </button>
-
-        {/* Back */}
-        {saved && (
-          <div className="mt-4 text-center">
+      {/* CARD */}
+      <div className="-mt-24 flex justify-center px-6">
+        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+          {/* Password */}
+          <div className="mb-4 relative">
+            <input
+              type={show1 ? "text" : "password"}
+              placeholder="New password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl border px-4 py-3 pr-12 text-sm focus:outline-none"
+            />
             <button
-              onClick={() => navigate("/dashboard")}
-              className="text-sm underline text-gray-600"
+              type="button"
+              onClick={() => setShow1(!show1)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
             >
-              Back to dashboard
+              {show1 ? "Hide" : "Show"}
             </button>
           </div>
-        )}
+
+          {/* Repeat */}
+          <div className="mb-4 relative">
+            <input
+              type={show2 ? "text" : "password"}
+              placeholder="Repeat new password"
+              value={password2}
+              onChange={(e) => setPassword2(e.target.value)}
+              className="w-full rounded-xl border px-4 py-3 pr-12 text-sm focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShow2(!show2)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"
+            >
+              {show2 ? "Hide" : "Show"}
+            </button>
+          </div>
+
+          {/* Checkbox */}
+          <div className="mb-6 flex items-center gap-2 text-sm text-gray-600">
+            <input
+              type="checkbox"
+              checked={confirmed}
+              onChange={(e) => setConfirmed(e.target.checked)}
+            />
+            <span>I confirm that I am the account owner.</span>
+          </div>
+
+          {error && (
+            <p className="mb-4 text-center text-sm text-red-600">{error}</p>
+          )}
+
+          {/* Button */}
+          <button
+            onClick={savePassword}
+            disabled={loading || saved}
+            className="w-full rounded-full bg-[#8bbbbb] py-3 text-sm font-semibold text-black disabled:opacity-50"
+          >
+            {loading
+              ? "Saving…"
+              : saved
+              ? "Password saved"
+              : "Save password →"}
+          </button>
+
+          {/* Back to login */}
+          <div className="mt-6 text-center text-sm text-gray-600">
+            <button
+              onClick={() => navigate("/login")}
+              className="underline hover:text-black"
+            >
+              Back to login
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
