@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -7,30 +8,42 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
-  const [status, setStatus] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
-
-  const handleSave = () => {
-    if (status !== "idle") return;
+  const handleSave = async () => {
+    if (loading || success) return;
 
     if (!confirmed) {
-      setStatus("error");
+      setError("Bitte bestätige den Hinweis.");
       return;
     }
 
     if (password.length < 6 || password !== password2) {
-      setStatus("error");
+      setError("Passwörter stimmen nicht überein.");
       return;
     }
 
-    setStatus("loading");
+    setLoading(true);
+    setError("");
 
-    // UI-Flow (bewusst ohne Supabase)
-    setTimeout(() => {
-      setStatus("success");
-    }, 800);
+    // 🔐 Passwort setzen (Recovery-Session existiert bereits!)
+    const { error: updateError } = await supabase.auth.updateUser({
+      password,
+    });
+
+    if (updateError) {
+      setError("Fehler beim Speichern des Passworts.");
+      setLoading(false);
+      return;
+    }
+
+    // 🔑 Session MUSS beendet werden
+    await supabase.auth.signOut();
+
+    setLoading(false);
+    setSuccess(true);
   };
 
   return (
@@ -51,8 +64,8 @@ export default function ResetPassword() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={loading || success}
             className="w-full border rounded-lg mt-2 px-4 py-3"
-            disabled={status !== "idle"}
           />
         </div>
 
@@ -64,8 +77,8 @@ export default function ResetPassword() {
             type="password"
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}
+            disabled={loading || success}
             className="w-full border rounded-lg mt-2 px-4 py-3"
-            disabled={status !== "idle"}
           />
         </div>
 
@@ -74,30 +87,28 @@ export default function ResetPassword() {
             type="checkbox"
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
-            disabled={status !== "idle"}
+            disabled={loading || success}
           />
           <span className="text-sm">
             Ich bestätige, dass ich der Inhaber dieses Kontos bin.
           </span>
         </div>
 
-        {status === "error" && (
-          <p className="text-red-600 text-sm mb-4">
-            Bitte prüfe deine Eingaben.
-          </p>
+        {error && (
+          <p className="text-red-600 text-sm mb-4">{error}</p>
         )}
 
         <button
           onClick={handleSave}
-          disabled={status === "loading" || status === "success"}
+          disabled={loading || success}
           className="w-full py-3 rounded-lg text-lg font-semibold bg-black text-white disabled:opacity-50"
         >
-          {status === "idle" && "Passwort speichern →"}
-          {status === "loading" && "Passwort wird gespeichert …"}
-          {status === "success" && "Passwort gespeichert ✓"}
+          {!loading && !success && "Passwort speichern →"}
+          {loading && "Passwort wird gespeichert …"}
+          {success && "Passwort gespeichert ✓"}
         </button>
 
-        {status === "success" && (
+        {success && (
           <button
             onClick={() => navigate("/login")}
             className="mt-6 w-full text-center underline text-gray-600"
