@@ -42,8 +42,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return (
-    <div className="flex min-h-screen bg-[#0b0d10] text-white">
+ return (
+  <div className="min-h-screen bg-[#0b0d10]">
+    <div className="flex min-h-screen text-white">
       <Sidebar />
 
       <div className="flex-1">
@@ -51,5 +52,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <main className="p-10">{children}</main>
       </div>
     </div>
-  );
+  </div>
+);
 }
