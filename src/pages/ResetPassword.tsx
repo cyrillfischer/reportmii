@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
@@ -8,113 +8,151 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [confirmed, setConfirmed] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
 
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 🔑 WICHTIG: Recovery-Session aus URL herstellen
+  useEffect(() => {
+    const initRecoverySession = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      if (!data.session) {
+        const { error } =
+          await supabase.auth.exchangeCodeForSession(window.location.href);
+
+        if (error) {
+          console.error("Recovery Session Error:", error);
+          setErrorMessage(
+            "Der Passwort-Link ist ungültig oder abgelaufen."
+          );
+          setStatus("error");
+        }
+      }
+    };
+
+    initRecoverySession();
+  }, []);
+
+  // 💾 Passwort speichern
   const handleSave = async () => {
-    if (loading || success) return;
+    if (status !== "idle") return;
+
+    setErrorMessage(null);
 
     if (!confirmed) {
-      setError("Bitte bestätige den Hinweis.");
+      setErrorMessage("Bitte bestätige, dass du der Inhaber dieses Kontos bist.");
+      setStatus("error");
       return;
     }
 
-    if (password.length < 6 || password !== password2) {
-      setError("Passwörter stimmen nicht überein.");
+    if (password.length < 6) {
+      setErrorMessage("Das Passwort muss mindestens 6 Zeichen lang sein.");
+      setStatus("error");
       return;
     }
 
-    setLoading(true);
-    setError("");
+    if (password !== password2) {
+      setErrorMessage("Die Passwörter stimmen nicht überein.");
+      setStatus("error");
+      return;
+    }
 
-    // 🔐 Passwort setzen (Recovery-Session existiert bereits!)
-    const { error: updateError } = await supabase.auth.updateUser({
-      password,
+    setStatus("loading");
+
+    const { error } = await supabase.auth.updateUser({
+      password: password,
     });
 
-    if (updateError) {
-      setError("Fehler beim Speichern des Passworts.");
-      setLoading(false);
+    if (error) {
+      console.error("Password update error:", error);
+      setErrorMessage("Fehler beim Speichern des Passworts.");
+      setStatus("error");
       return;
     }
 
-    // 🔑 Session MUSS beendet werden
-    await supabase.auth.signOut();
-
-    setLoading(false);
-    setSuccess(true);
+    setStatus("success");
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <div className="w-full bg-black pt-24 pb-24 text-center">
-        <h1 className="text-white text-4xl font-bold">
+    <div className="min-h-screen flex items-center justify-center bg-white px-6">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+        <h1 className="text-2xl font-semibold text-center mb-2">
           Neues Passwort setzen
         </h1>
-        <p className="text-gray-300 mt-2">
+        <p className="text-sm text-gray-500 text-center mb-8">
           Wähle ein neues, sicheres Passwort.
         </p>
-      </div>
 
-      <div className="max-w-lg mx-auto -mt-20 bg-white shadow-xl rounded-xl p-10">
-        <div className="mb-6">
-          <label className="text-sm font-semibold">Neues Passwort</label>
+        {/* Passwort */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">
+            Neues Passwort
+          </label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={loading || success}
-            className="w-full border rounded-lg mt-2 px-4 py-3"
+            className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring"
           />
         </div>
 
-        <div className="mb-6">
-          <label className="text-sm font-semibold">
+        {/* Passwort wiederholen */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">
             Passwort wiederholen
           </label>
           <input
             type="password"
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}
-            disabled={loading || success}
-            className="w-full border rounded-lg mt-2 px-4 py-3"
+            className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring"
           />
         </div>
 
-        <div className="flex items-center gap-3 mb-6">
+        {/* Bestätigung */}
+        <div className="flex items-center mb-6">
           <input
             type="checkbox"
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
-            disabled={loading || success}
+            className="mr-2"
           />
-          <span className="text-sm">
+          <span className="text-sm text-gray-600">
             Ich bestätige, dass ich der Inhaber dieses Kontos bin.
           </span>
         </div>
 
-        {error && (
-          <p className="text-red-600 text-sm mb-4">{error}</p>
+        {/* Fehler */}
+        {status === "error" && errorMessage && (
+          <p className="text-sm text-red-600 mb-4">{errorMessage}</p>
         )}
 
+        {/* Button */}
         <button
           onClick={handleSave}
-          disabled={loading || success}
-          className="w-full py-3 rounded-lg text-lg font-semibold bg-black text-white disabled:opacity-50"
+          disabled={status === "loading"}
+          className="w-full bg-black text-white rounded-lg py-3 font-medium hover:opacity-90 transition disabled:opacity-50"
         >
-          {!loading && !success && "Passwort speichern →"}
-          {loading && "Passwort wird gespeichert …"}
-          {success && "Passwort gespeichert ✓"}
+          {status === "loading" ? "Speichern..." : "Passwort speichern →"}
         </button>
 
-        {success && (
-          <button
-            onClick={() => navigate("/login")}
-            className="mt-6 w-full text-center underline text-gray-600"
-          >
-            Zurück zum Login
-          </button>
+        {/* Erfolg */}
+        {status === "success" && (
+          <div className="mt-6 text-center">
+            <p className="text-green-600 font-medium">
+              Passwort wurde gespeichert.
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              className="mt-3 underline text-sm text-gray-600 hover:text-black"
+            >
+              Zurück zum Login
+            </button>
+          </div>
         )}
       </div>
     </div>
