@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
@@ -17,9 +17,8 @@ export default function ResetPassword() {
   const [errorMsg, setErrorMsg] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // 🔐 Token validieren (einmalig)
   useEffect(() => {
-    const verify = async () => {
+    const run = async () => {
       if (!token_hash || type !== "recovery") {
         setErrorMsg("Ungültiger oder abgelaufener Link.");
         return;
@@ -31,31 +30,32 @@ export default function ResetPassword() {
       });
 
       if (error) {
-        setErrorMsg("Dieser Reset-Link ist ungültig oder abgelaufen.");
+        setErrorMsg("Token ungültig oder abgelaufen.");
       }
     };
 
-    verify();
+    run();
   }, [token_hash, type]);
 
   const handleSave = async () => {
+    setErrorMsg("");
+
     if (!confirmed) {
       setErrorMsg("Bitte bestätige, dass du der Kontoinhaber bist.");
       return;
     }
 
     if (password.length < 6) {
-      setErrorMsg("Das Passwort muss mindestens 6 Zeichen haben.");
+      setErrorMsg("Passwort muss mindestens 6 Zeichen haben.");
       return;
     }
 
     if (password !== password2) {
-      setErrorMsg("Die Passwörter stimmen nicht überein.");
+      setErrorMsg("Passwörter stimmen nicht überein.");
       return;
     }
 
     setLoading(true);
-    setErrorMsg("");
 
     const { error } = await supabase.auth.updateUser({
       password,
@@ -68,13 +68,11 @@ export default function ResetPassword() {
       return;
     }
 
-    // ✅ HIER passiert der wichtige Teil
     setSuccess(true);
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
       <div className="w-full bg-black pt-24 pb-24 text-center">
         <h1 className="text-white text-4xl font-bold">Neues Passwort setzen</h1>
         <p className="text-gray-300 mt-2">
@@ -82,9 +80,8 @@ export default function ResetPassword() {
         </p>
       </div>
 
-      {/* Card */}
       <div className="max-w-lg mx-auto -mt-20 bg-white shadow-xl rounded-xl p-10">
-        {!success ? (
+        {!success && (
           <>
             <div className="mb-6">
               <label className="text-sm font-semibold">Neues Passwort</label>
@@ -132,15 +129,10 @@ export default function ResetPassword() {
                 ? "Passwort wird gespeichert …"
                 : "Passwort speichern →"}
             </button>
-
-            <button
-              onClick={() => navigate("/login")}
-              className="mt-6 text-center w-full text-gray-500 underline"
-            >
-              Zurück zum Login
-            </button>
           </>
-        ) : (
+        )}
+
+        {success && (
           <>
             <p className="text-green-600 text-lg font-semibold mb-6 text-center">
               Dein Passwort wurde erfolgreich geändert.
