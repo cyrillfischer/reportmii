@@ -14,7 +14,7 @@ export default function ResetPassword() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Recovery-Session herstellen (EINMAL)
+  // 🔐 Recovery-Session herstellen (korrekt + stabil)
   useEffect(() => {
     const init = async () => {
       const params = new URLSearchParams(window.location.search);
@@ -41,7 +41,7 @@ export default function ResetPassword() {
     init();
   }, []);
 
-  // ✅ Passwort speichern (kann NICHT hängen bleiben)
+  // 💾 Passwort speichern (KANN NICHT HÄNGEN)
   const savePassword = async () => {
     if (saving || saved) return;
 
@@ -53,27 +53,27 @@ export default function ResetPassword() {
     }
 
     if (password.length < 6) {
-      setError("Das Passwort muss mindestens 6 Zeichen lang sein.");
+      setError("Passwort mindestens 6 Zeichen.");
       return;
     }
 
     if (password !== password2) {
-      setError("Die Passwörter stimmen nicht überein.");
+      setError("Passwörter stimmen nicht überein.");
       return;
     }
 
     setSaving(true);
 
-    const { error } = await supabase.auth.updateUser({ password });
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
 
-    if (error) {
+      setSaved(true);
+    } catch {
       setError("Fehler beim Speichern des Passworts.");
+    } finally {
       setSaving(false);
-      return;
     }
-
-    setSaving(false);
-    setSaved(true);
   };
 
   return (
@@ -90,7 +90,7 @@ export default function ResetPassword() {
         )}
 
         {error && (
-          <p className="text-sm text-red-600 mt-6 text-center">{error}</p>
+          <p className="text-sm text-red-600 text-center mt-6">{error}</p>
         )}
 
         {ready && (
