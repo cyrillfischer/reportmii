@@ -15,29 +15,34 @@ export default function ResetPassword() {
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // 🔑 WICHTIG: Recovery-Session aus URL herstellen
+  // 🔑 KORREKT: Recovery-Session mit verifyOtp herstellen
   useEffect(() => {
-    const initRecoverySession = async () => {
-      const { data } = await supabase.auth.getSession();
+    const initRecovery = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const tokenHash = params.get("token_hash");
+      const type = params.get("type");
 
-      if (!data.session) {
-        const { error } =
-          await supabase.auth.exchangeCodeForSession(window.location.href);
+      if (!tokenHash || type !== "recovery") {
+        setErrorMessage("Der Passwort-Link ist ungültig oder abgelaufen.");
+        setStatus("error");
+        return;
+      }
 
-        if (error) {
-          console.error("Recovery Session Error:", error);
-          setErrorMessage(
-            "Der Passwort-Link ist ungültig oder abgelaufen."
-          );
-          setStatus("error");
-        }
+      const { error } = await supabase.auth.verifyOtp({
+        type: "recovery",
+        token_hash: tokenHash,
+      });
+
+      if (error) {
+        console.error("verifyOtp error:", error);
+        setErrorMessage("Der Passwort-Link ist ungültig oder abgelaufen.");
+        setStatus("error");
       }
     };
 
-    initRecoverySession();
+    initRecovery();
   }, []);
 
-  // 💾 Passwort speichern
   const handleSave = async () => {
     if (status !== "idle") return;
 
@@ -64,11 +69,11 @@ export default function ResetPassword() {
     setStatus("loading");
 
     const { error } = await supabase.auth.updateUser({
-      password: password,
+      password,
     });
 
     if (error) {
-      console.error("Password update error:", error);
+      console.error("updateUser error:", error);
       setErrorMessage("Fehler beim Speichern des Passworts.");
       setStatus("error");
       return;
@@ -87,7 +92,6 @@ export default function ResetPassword() {
           Wähle ein neues, sicheres Passwort.
         </p>
 
-        {/* Passwort */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">
             Neues Passwort
@@ -96,11 +100,10 @@ export default function ResetPassword() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring"
+            className="w-full border rounded-lg px-4 py-2"
           />
         </div>
 
-        {/* Passwort wiederholen */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">
             Passwort wiederholen
@@ -109,11 +112,10 @@ export default function ResetPassword() {
             type="password"
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}
-            className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring"
+            className="w-full border rounded-lg px-4 py-2"
           />
         </div>
 
-        {/* Bestätigung */}
         <div className="flex items-center mb-6">
           <input
             type="checkbox"
@@ -126,21 +128,18 @@ export default function ResetPassword() {
           </span>
         </div>
 
-        {/* Fehler */}
         {status === "error" && errorMessage && (
           <p className="text-sm text-red-600 mb-4">{errorMessage}</p>
         )}
 
-        {/* Button */}
         <button
           onClick={handleSave}
           disabled={status === "loading"}
-          className="w-full bg-black text-white rounded-lg py-3 font-medium hover:opacity-90 transition disabled:opacity-50"
+          className="w-full bg-black text-white rounded-lg py-3 font-medium disabled:opacity-50"
         >
           {status === "loading" ? "Speichern..." : "Passwort speichern →"}
         </button>
 
-        {/* Erfolg */}
         {status === "success" && (
           <div className="mt-6 text-center">
             <p className="text-green-600 font-medium">
@@ -148,7 +147,7 @@ export default function ResetPassword() {
             </p>
             <button
               onClick={() => navigate("/login")}
-              className="mt-3 underline text-sm text-gray-600 hover:text-black"
+              className="mt-3 underline text-sm text-gray-600"
             >
               Zurück zum Login
             </button>
