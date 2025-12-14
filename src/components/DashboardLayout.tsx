@@ -30,7 +30,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0d10] text-white relative">
+  <div className="min-h-screen bg-[#0b0d10] text-white relative">
 
       {/* ------------------------------------------------ */}
       {/* 🔝 TOP NAVIGATION BAR (Premium, clean, fixed) */}
