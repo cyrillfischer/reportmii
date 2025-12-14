@@ -1,53 +1,156 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
-  const [status, setStatus] = useState<
-    "idle" | "loading" | "success" | "error"
-  >("idle");
+  const token_hash = params.get("token_hash");
+  const type = params.get("type");
+
+  const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // 🔐 Token einmalig validieren (Session herstellen)
+  useEffect(() => {
+    const verify = async () => {
+      if (!token_hash || type !== "recovery") {
+        setErrorMsg("Ungültiger oder abgelaufener Link.");
+        return;
+      }
+
+      const { error } = await supabase.auth.verifyOtp({
+        type: "recovery",
+        token_hash,
+      });
+
+      if (error) {
+        setErrorMsg("Token ungültig oder abgelaufen.");
+      }
+    };
+
+    verify();
+  }, [token_hash, type]);
 
   const handleSave = async () => {
-    if (status !== "idle") return;
+    if (success || loading) return;
 
-    setStatus("loading");
+    setErrorMsg("");
 
-    // ⛔️ ABSICHTLICH KEIN SUPABASE
-    // Wir simulieren hier NUR den UI-Flow
-    setTimeout(() => {
-      setStatus("success");
-    }, 800);
+    if (!confirmed) {
+      setErrorMsg("Bitte bestätige, dass du der Kontoinhaber bist.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMsg("Passwort muss mindestens 6 Zeichen haben.");
+      return;
+    }
+
+    if (password !== password2) {
+      setErrorMsg("Passwörter stimmen nicht überein.");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setErrorMsg("Fehler beim Speichern des Passworts.");
+      return;
+    }
+
+    setSuccess(true);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="w-full max-w-md bg-white shadow-xl rounded-xl p-8">
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header */}
+      <div className="w-full bg-black pt-24 pb-24 text-center">
+        <h1 className="text-white text-4xl font-bold">
+          Neues Passwort setzen
+        </h1>
+        <p className="text-gray-300 mt-2">
+          Wähle ein neues, sicheres Passwort.
+        </p>
+      </div>
 
-        <button
-          onClick={handleSave}
-          disabled={status === "loading"}
-          className="w-full py-3 rounded-lg text-lg font-semibold bg-black text-white disabled:opacity-50"
-        >
-          {status === "idle" && "Passwort speichern →"}
-          {status === "loading" && "Passwort wird gespeichert …"}
-          {status === "success" && "Passwort gespeichert ✓"}
-        </button>
+      {/* Card */}
+      <div className="max-w-lg mx-auto -mt-20 bg-white shadow-xl rounded-xl p-10">
+        <div className="mb-6">
+          <label className="text-sm font-semibold">Neues Passwort</label>
+          <input
+            type="password"
+            value={password}
+            disabled={success}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border rounded-lg mt-2 px-4 py-3 disabled:bg-gray-100"
+          />
+        </div>
 
-        {status === "success" && (
+        <div className="mb-6">
+          <label className="text-sm font-semibold">
+            Passwort wiederholen
+          </label>
+          <input
+            type="password"
+            value={password2}
+            disabled={success}
+            onChange={(e) => setPassword2(e.target.value)}
+            className="w-full border rounded-lg mt-2 px-4 py-3 disabled:bg-gray-100"
+          />
+        </div>
+
+        <div className="flex items-center gap-3 mb-4">
+          <input
+            type="checkbox"
+            checked={confirmed}
+            disabled={success}
+            onChange={(e) => setConfirmed(e.target.checked)}
+          />
+          <span className="text-sm">
+            Ich bestätige, dass ich der Inhaber dieses Kontos bin.
+          </span>
+        </div>
+
+        {errorMsg && (
+          <p className="text-red-500 text-sm mb-4">{errorMsg}</p>
+        )}
+
+        {/* BUTTON */}
+        {!success ? (
           <button
-            onClick={() => navigate("/login")}
-            className="mt-6 w-full text-center underline text-gray-600"
+            onClick={handleSave}
+            disabled={loading}
+            className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-40"
           >
-            Zurück zum Login
+            {loading ? "Passwort wird gespeichert …" : "Passwort speichern →"}
+          </button>
+        ) : (
+          <button
+            className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold cursor-default"
+          >
+            Passwort gespeichert ✓
           </button>
         )}
 
-        {status === "error" && (
-          <p className="mt-4 text-red-600 text-center">
-            Fehler beim Speichern
-          </p>
-        )}
+        <button
+          onClick={() => navigate("/login")}
+          className="mt-6 text-center w-full text-gray-500 underline"
+        >
+          Zurück zum Login
+        </button>
       </div>
     </div>
   );
