@@ -1,17 +1,17 @@
-// src/pages/Login.tsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
 export function Login() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
-    "idle"
-  );
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
-    setStatus("loading");
+    setLoading(true);
     setError(null);
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -20,20 +20,21 @@ export function Login() {
     });
 
     if (error || !data.session) {
-      setStatus("error");
       setError(error?.message || "Login fehlgeschlagen");
+      setLoading(false);
       return;
     }
 
-    setStatus("success");
+    // ✅ LOGIN OK → DIREKT INS DASHBOARD
+    navigate("/dashboard");
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-6">
       <div className="w-full max-w-md rounded-2xl border border-gray-200 p-8 shadow-lg">
-        <h1 className="text-2xl font-semibold mb-2">Login – Schritt 2</h1>
+        <h1 className="text-2xl font-semibold mb-2">Login</h1>
         <p className="text-gray-500 mb-6 text-sm">
-          Echter Supabase Login, kein Redirect, kein Dashboard
+          Supabase Login mit direktem Redirect ins Dashboard
         </p>
 
         <input
@@ -54,20 +55,13 @@ export function Login() {
 
         <button
           onClick={handleLogin}
-          disabled={status === "loading"}
+          disabled={loading}
           className="w-full rounded-xl bg-black text-white py-3 font-medium disabled:opacity-50"
         >
-          {status === "loading" ? "Login läuft…" : "Login testen"}
+          {loading ? "Login läuft…" : "Login"}
         </button>
 
-        {/* STATUS */}
-        {status === "success" && (
-          <p className="mt-4 text-green-600 text-sm">
-            ✅ Login erfolgreich – Session vorhanden
-          </p>
-        )}
-
-        {status === "error" && (
+        {error && (
           <p className="mt-4 text-red-600 text-sm">
             ❌ {error}
           </p>

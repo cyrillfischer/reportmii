@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const [params] = useSearchParams();
 
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
@@ -17,24 +16,18 @@ export default function ResetPassword() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔐 verify recovery session
+  // ✅ Check if recovery session exists
   useEffect(() => {
-    const tokenHash = params.get("token_hash");
-    const type = params.get("type");
+    const checkRecoverySession = async () => {
+      const { data, error } = await supabase.auth.getSession();
 
-    if (!tokenHash || type !== "recovery") {
-      setError("This password reset link is invalid or has expired.");
-      return;
-    }
+      if (error || !data.session) {
+        setError("This password reset link is invalid or has expired.");
+      }
+    };
 
-    supabase.auth
-      .verifyOtp({ type: "recovery", token_hash: tokenHash })
-      .then(({ error }) => {
-        if (error) {
-          setError("This password reset link is invalid or has expired.");
-        }
-      });
-  }, [params]);
+    checkRecoverySession();
+  }, []);
 
   const savePassword = async () => {
     if (loading || saved) return;
@@ -61,9 +54,10 @@ export default function ResetPassword() {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
+
       setSaved(true);
-    } catch {
-      setError("Something went wrong while saving your new password.");
+    } catch (err: any) {
+      setError(err.message || "Failed to update password.");
     } finally {
       setLoading(false);
     }
@@ -71,7 +65,7 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* 🔥 BLACK HEADER (like login page) */}
+      {/* Header */}
       <div className="bg-black py-24 text-center">
         <h1 className="text-3xl font-semibold text-white">
           Reset your password
@@ -81,7 +75,7 @@ export default function ResetPassword() {
         </p>
       </div>
 
-      {/* CARD */}
+      {/* Card */}
       <div className="-mt-24 flex justify-center px-6">
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
           {/* Password */}
