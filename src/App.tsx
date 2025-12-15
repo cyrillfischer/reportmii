@@ -56,7 +56,6 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 
-
 // 🌍 Public Layout
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -68,7 +67,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// 🔑 Auth Layout
+// 🔑 Auth Layout (mit Header, ohne Footer)
 function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -87,7 +86,6 @@ function PasswordLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-
 // 🚀 ROOT APP
 export default function App() {
   const location = useLocation();
@@ -99,36 +97,149 @@ export default function App() {
 
   return (
     <Routes>
-
       {/* ===================== */}
       {/* 🌍 Public Pages       */}
       {/* ===================== */}
-      <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
+      <Route
+        path="/"
+        element={
+          <PublicLayout>
+            <LandingPage />
+          </PublicLayout>
+        }
+      />
 
       <Route path="/business" element={<BusinessPage />} />
-      <Route path="/business-checkout" element={<PublicLayout><BusinessCheckoutPage /></PublicLayout>} />
-      <Route path="/success-business" element={<AuthLayout><SuccessBusinessPage /></AuthLayout>} />
+      <Route
+        path="/business-checkout"
+        element={
+          <PublicLayout>
+            <BusinessCheckoutPage />
+          </PublicLayout>
+        }
+      />
+      <Route
+        path="/success-business"
+        element={
+          <AuthLayout>
+            <SuccessBusinessPage />
+          </AuthLayout>
+        }
+      />
 
       <Route path="/inside" element={<InsidePage />} />
-      <Route path="/inside-checkout" element={<PublicLayout><InsideCheckoutPage /></PublicLayout>} />
-      <Route path="/success-inside" element={<AuthLayout><SuccessInsidePage /></AuthLayout>} />
+      <Route
+        path="/inside-checkout"
+        element={
+          <PublicLayout>
+            <InsideCheckoutPage />
+          </PublicLayout>
+        }
+      />
+      <Route
+        path="/success-inside"
+        element={
+          <AuthLayout>
+            <SuccessInsidePage />
+          </AuthLayout>
+        }
+      />
 
-      <Route path="/partner" element={<PublicLayout><PartnerPage /></PublicLayout>} />
-      <Route path="/partner-checkout" element={<PublicLayout><PartnerCheckoutPage /></PublicLayout>} />
-      <Route path="/success-partner" element={<AuthLayout><SuccessPartnerPage /></AuthLayout>} />
+      <Route
+        path="/partner"
+        element={
+          <PublicLayout>
+            <PartnerPage />
+          </PublicLayout>
+        }
+      />
+      <Route
+        path="/partner-checkout"
+        element={
+          <PublicLayout>
+            <PartnerCheckoutPage />
+          </PublicLayout>
+        }
+      />
+      <Route
+        path="/success-partner"
+        element={
+          <AuthLayout>
+            <SuccessPartnerPage />
+          </AuthLayout>
+        }
+      />
 
-      <Route path="/affiliate" element={<PublicLayout><AffiliatePage /></PublicLayout>} />
-      <Route path="/affiliate-register" element={<PublicLayout><AffiliateRegisterPage /></PublicLayout>} />
-      <Route path="/success-affiliate" element={<AuthLayout><SuccessAffiliatePage /></AuthLayout>} />
-      <Route path="/success-register" element={<AuthLayout><SuccessRegisterPage /></AuthLayout>} />
+      <Route
+        path="/affiliate"
+        element={
+          <PublicLayout>
+            <AffiliatePage />
+          </PublicLayout>
+        }
+      />
+      <Route
+        path="/affiliate-register"
+        element={
+          <PublicLayout>
+            <AffiliateRegisterPage />
+          </PublicLayout>
+        }
+      />
+      <Route
+        path="/success-affiliate"
+        element={
+          <AuthLayout>
+            <SuccessAffiliatePage />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/success-register"
+        element={
+          <AuthLayout>
+            <SuccessRegisterPage />
+          </AuthLayout>
+        }
+      />
 
       {/* ===================== */}
       {/* 🔑 Auth               */}
       {/* ===================== */}
-      <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
-      <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
-      <Route path="/reset-password" element={<PasswordLayout><ResetPassword /></PasswordLayout>} />
-      <Route path="/update-password" element={<PasswordLayout><UpdatePassword /></PasswordLayout>} />
+      <Route
+        path="/login"
+        element={
+          <AuthLayout>
+            <Login />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <AuthLayout>
+            <ForgotPassword />
+          </AuthLayout>
+        }
+      />
+
+      {/* Passwort-Flows bewusst ohne Header/Footer */}
+      <Route
+        path="/reset-password"
+        element={
+          <PasswordLayout>
+            <ResetPassword />
+          </PasswordLayout>
+        }
+      />
+      <Route
+        path="/update-password"
+        element={
+          <PasswordLayout>
+            <UpdatePassword />
+          </PasswordLayout>
+        }
+      />
 
       {/* ===================== */}
       {/* 📊 Dashboard          */}
@@ -249,16 +360,43 @@ export default function App() {
       {/* ===================== */}
       {/* 📄 Legal              */}
       {/* ===================== */}
-      <Route path="/impressum" element={<PublicLayout><ImpressumPage /></PublicLayout>} />
-      <Route path="/privacy" element={<PublicLayout><PrivacyPage /></PublicLayout>} />
-      <Route path="/terms" element={<PublicLayout><TermsPage /></PublicLayout>} />
-      <Route path="/contact" element={<PublicLayout><ContactPage /></PublicLayout>} />
+      <Route
+        path="/impressum"
+        element={
+          <PublicLayout>
+            <ImpressumPage />
+          </PublicLayout>
+        }
+      />
+      <Route
+        path="/privacy"
+        element={
+          <PublicLayout>
+            <PrivacyPage />
+          </PublicLayout>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <PublicLayout>
+            <TermsPage />
+          </PublicLayout>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <PublicLayout>
+            <ContactPage />
+          </PublicLayout>
+        }
+      />
 
       {/* ===================== */}
       {/* ❌ Fallback           */}
       {/* ===================== */}
       <Route path="*" element={<Navigate to="/" replace />} />
-
     </Routes>
   );
 }
