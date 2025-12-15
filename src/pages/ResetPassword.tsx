@@ -16,19 +16,32 @@ export default function ResetPassword() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Check if recovery session exists
+  // ✅ STEP 1: Recovery-Session aus URL herstellen
   useEffect(() => {
-    const checkRecoverySession = async () => {
-      const { data, error } = await supabase.auth.getSession();
+    const initRecoverySession = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const tokenHash = params.get("token_hash");
+      const type = params.get("type");
 
-      if (error || !data.session) {
+      if (!tokenHash || type !== "recovery") {
+        setError("This password reset link is invalid or has expired.");
+        return;
+      }
+
+      const { error } = await supabase.auth.verifyOtp({
+        type: "recovery",
+        token_hash: tokenHash,
+      });
+
+      if (error) {
         setError("This password reset link is invalid or has expired.");
       }
     };
 
-    checkRecoverySession();
+    initRecoverySession();
   }, []);
 
+  // ✅ STEP 2: Passwort speichern
   const savePassword = async () => {
     if (loading || saved) return;
 
@@ -51,21 +64,23 @@ export default function ResetPassword() {
 
     setLoading(true);
 
-    try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
 
-      setSaved(true);
-    } catch (err: any) {
-      setError(err.message || "Failed to update password.");
-    } finally {
+    if (error) {
+      setError(error.message || "Failed to update password.");
       setLoading(false);
+      return;
     }
+
+    setSaved(true);
+    setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
+      {/* HEADER */}
       <div className="bg-black py-24 text-center">
         <h1 className="text-3xl font-semibold text-white">
           Reset your password
@@ -75,17 +90,17 @@ export default function ResetPassword() {
         </p>
       </div>
 
-      {/* Card */}
+      {/* CARD */}
       <div className="-mt-24 flex justify-center px-6">
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-          {/* Password */}
+          {/* PASSWORD */}
           <div className="mb-4 relative">
             <input
               type={show1 ? "text" : "password"}
               placeholder="New password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border px-4 py-3 pr-12 text-sm focus:outline-none"
+              className="w-full rounded-xl border px-4 py-3 pr-12 text-sm"
             />
             <button
               type="button"
@@ -96,14 +111,14 @@ export default function ResetPassword() {
             </button>
           </div>
 
-          {/* Repeat */}
+          {/* REPEAT */}
           <div className="mb-4 relative">
             <input
               type={show2 ? "text" : "password"}
               placeholder="Repeat new password"
               value={password2}
               onChange={(e) => setPassword2(e.target.value)}
-              className="w-full rounded-xl border px-4 py-3 pr-12 text-sm focus:outline-none"
+              className="w-full rounded-xl border px-4 py-3 pr-12 text-sm"
             />
             <button
               type="button"
@@ -114,7 +129,7 @@ export default function ResetPassword() {
             </button>
           </div>
 
-          {/* Checkbox */}
+          {/* CONFIRM */}
           <div className="mb-6 flex items-center gap-2 text-sm text-gray-600">
             <input
               type="checkbox"
@@ -124,11 +139,14 @@ export default function ResetPassword() {
             <span>I confirm that I am the owner of this account.</span>
           </div>
 
+          {/* ERROR */}
           {error && (
-            <p className="mb-4 text-center text-sm text-red-600">{error}</p>
+            <p className="mb-4 text-center text-sm text-red-600">
+              {error}
+            </p>
           )}
 
-          {/* Button */}
+          {/* BUTTON */}
           <button
             onClick={savePassword}
             disabled={loading || saved}
@@ -141,7 +159,7 @@ export default function ResetPassword() {
               : "Save new password →"}
           </button>
 
-          {/* Back to login */}
+          {/* BACK */}
           <div className="mt-6 text-center text-sm text-gray-600">
             <button
               onClick={() => navigate("/login")}
