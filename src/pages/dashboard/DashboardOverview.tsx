@@ -1,7 +1,7 @@
 // src/pages/dashboard/DashboardOverview.tsx
 import { motion } from "framer-motion";
 import { FileText, CheckCircle, Activity } from "lucide-react";
-import { DashboardLayout } from "../../components/DashboardLayout";
+import { DashboardLayout } from "../../layouts/DashboardLayout";
 import { UserProfileHeader } from "../../components/dashboard/UserProfileHeader";
 
 export function DashboardOverview() {

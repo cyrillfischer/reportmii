@@ -1,9 +1,8 @@
-// src/components/dashboard/UserProfileHeader.tsx
 import { useUser } from "../../contexts/UserContext";
 import { motion } from "framer-motion";
 
 export function UserProfileHeader() {
-  const { userProfile, loading } = useUser();
+  const { profile, loading } = useUser();
 
   if (loading) {
     return (
@@ -13,7 +12,7 @@ export function UserProfileHeader() {
     );
   }
 
-  if (!userProfile) {
+  if (!profile) {
     return (
       <div className="text-red-400 text-lg">
         Kein Profil gefunden.
@@ -21,7 +20,7 @@ export function UserProfileHeader() {
     );
   }
 
-  const name = `${userProfile.first_name} ${userProfile.last_name}`;
+  const name = `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim();
 
   return (
     <motion.div
@@ -30,52 +29,45 @@ export function UserProfileHeader() {
       transition={{ duration: 0.3 }}
       className="flex items-center gap-6 mb-10"
     >
-      {/* PROFILBILD */}
+      {/* PROFILBILD / INITIALEN */}
       <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center overflow-hidden backdrop-blur-xl border border-white/30">
-        {userProfile.profile_image_url ? (
+        {profile.logo_url ? (
           <img
-            src={userProfile.profile_image_url}
+            src={profile.logo_url}
             alt="Profilbild"
             className="w-full h-full object-cover"
           />
         ) : (
           <span className="text-white text-2xl font-bold">
-            {userProfile.first_name?.[0]}
-            {userProfile.last_name?.[0]}
+            {profile.first_name?.[0]}
+            {profile.last_name?.[0]}
           </span>
         )}
       </div>
 
       {/* USER INFO */}
       <div className="text-white">
-        <h2 className="text-3xl font-bold">{name}</h2>
+        <h2 className="text-3xl font-bold">
+          {name || "Willkommen"}
+        </h2>
 
         <p className="text-white/80 flex items-center gap-2">
-          <span>{userProfile.company || "Ohne Firma"}</span>
+          <span>{profile.company || "Keine Firma angegeben"}</span>
           <span>·</span>
-          <span>{userProfile.country || "Land fehlt"}</span>
+          <span>{profile.country || "Land fehlt"}</span>
         </p>
 
-        {/* Rollen */}
+        {/* PLÄNE / BADGES */}
         <div className="mt-3 flex gap-2 flex-wrap">
-          {userProfile.roles.isBusiness && (
+          {profile.plan_business_active && (
             <span className="px-3 py-1 bg-violet-600 rounded-xl text-sm">
-              Business.mii Kunde
+              Business.mii
             </span>
           )}
-          {userProfile.roles.isInside && (
+
+          {profile.plan_inside_active && (
             <span className="px-3 py-1 bg-teal-600 rounded-xl text-sm">
-              Inside.mii Kunde
-            </span>
-          )}
-          {userProfile.roles.isPartner && (
-            <span className="px-3 py-1 bg-orange-600 rounded-xl text-sm">
-              Partner.mii
-            </span>
-          )}
-          {userProfile.roles.isAffiliate && (
-            <span className="px-3 py-1 bg-emerald-600 rounded-xl text-sm">
-              Affiliate
+              Inside.mii
             </span>
           )}
         </div>

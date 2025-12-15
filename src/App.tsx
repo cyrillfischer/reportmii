@@ -2,9 +2,6 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
-import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import { supabase } from "./supabase/supabaseClient";
-
 // 🔐 Protected
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
@@ -35,6 +32,7 @@ import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 
 // 📊 Dashboards
+import DashboardRedirect from "./pages/dashboard/DashboardRedirect";
 import { DashboardOverview } from "./pages/business/DashboardOverview";
 import { DashboardAnalyses } from "./pages/business/DashboardAnalyses";
 import { DashboardAccount } from "./pages/business/DashboardAccount";
@@ -70,7 +68,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// 🔑 Minimal Layout (ohne Footer)
+// 🔑 Auth Layout
 function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -80,7 +78,7 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ❗ Reset-Passwort benötigt EIGENES Layout (NICHT AuthLayout)
+// 🔒 Passwort-Layout (ohne Header/Footer)
 function PasswordLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -99,41 +97,14 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // Block redirects during password recovery
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_: AuthChangeEvent, session: Session | null) => {
-        const path = window.location.pathname;
-        const search = window.location.search;
-
-        const isPasswordFlow =
-          path.includes("reset-password") ||
-          path.includes("update-password") ||
-          search.includes("token") ||
-          search.includes("token_hash") ||
-          search.includes("type=recovery");
-
-        if (isPasswordFlow) {
-          return; // WICHTIG!
-        }
-
-        if (session) {
-          window.location.href = "/dashboard/overview";
-        }
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-
   return (
     <Routes>
 
-      {/* Public pages */}
+      {/* ===================== */}
+      {/* 🌍 Public Pages       */}
+      {/* ===================== */}
       <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
+
       <Route path="/business" element={<BusinessPage />} />
       <Route path="/business-checkout" element={<PublicLayout><BusinessCheckoutPage /></PublicLayout>} />
       <Route path="/success-business" element={<AuthLayout><SuccessBusinessPage /></AuthLayout>} />
@@ -151,22 +122,24 @@ export default function App() {
       <Route path="/success-affiliate" element={<AuthLayout><SuccessAffiliatePage /></AuthLayout>} />
       <Route path="/success-register" element={<AuthLayout><SuccessRegisterPage /></AuthLayout>} />
 
-      {/* Auth */}
+      {/* ===================== */}
+      {/* 🔑 Auth               */}
+      {/* ===================== */}
       <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
       <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
-
-      {/* WICHTIG: Eigener Layout-Wrapper – kein Header, kein Footer */}
       <Route path="/reset-password" element={<PasswordLayout><ResetPassword /></PasswordLayout>} />
       <Route path="/update-password" element={<PasswordLayout><UpdatePassword /></PasswordLayout>} />
 
-      {/* Dashboard */}
+      {/* ===================== */}
+      {/* 📊 Dashboard          */}
+      {/* ===================== */}
+
+      {/* 🔥 ZENTRALER ENTRYPOINT */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <DashboardLayout>
-              <DashboardOverview />
-            </DashboardLayout>
+            <DashboardRedirect />
           </ProtectedRoute>
         }
       />
@@ -204,6 +177,9 @@ export default function App() {
         }
       />
 
+      {/* ===================== */}
+      {/* 🧠 Analyse Flow       */}
+      {/* ===================== */}
       <Route
         path="/analysis/new"
         element={
@@ -270,13 +246,17 @@ export default function App() {
         }
       />
 
-      {/* Legal */}
+      {/* ===================== */}
+      {/* 📄 Legal              */}
+      {/* ===================== */}
       <Route path="/impressum" element={<PublicLayout><ImpressumPage /></PublicLayout>} />
       <Route path="/privacy" element={<PublicLayout><PrivacyPage /></PublicLayout>} />
       <Route path="/terms" element={<PublicLayout><TermsPage /></PublicLayout>} />
       <Route path="/contact" element={<PublicLayout><ContactPage /></PublicLayout>} />
 
-      {/* Fallback */}
+      {/* ===================== */}
+      {/* ❌ Fallback           */}
+      {/* ===================== */}
       <Route path="*" element={<Navigate to="/" replace />} />
 
     </Routes>
