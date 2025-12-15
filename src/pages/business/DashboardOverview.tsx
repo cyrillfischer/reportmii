@@ -1,22 +1,10 @@
-// src/pages/business/DashboardOverview.tsx
-
 export function DashboardOverview() {
   return (
-    <div
-      style={{
-        padding: 40,
-        backgroundColor: "#0f172a",
-        color: "white",
-        minHeight: "100vh",
-      }}
-    >
-      <h1 style={{ fontSize: 32, fontWeight: "bold" }}>
-        ✅ TEST: DashboardOverview rendert
+    <div style={{ padding: 40 }}>
+      <h1 style={{ color: "red", fontSize: 40 }}>
+        🚨 DASHBOARD OVERVIEW WIRD GERENDERT 🚨
       </h1>
-
-      <p style={{ marginTop: 16, fontSize: 18 }}>
-        If you can see this text, the dashboard route and component are working.
-      </p>
+      <p>Wenn du das siehst, ist die Route korrekt.</p>
     </div>
   );
 }

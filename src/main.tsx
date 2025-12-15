@@ -6,23 +6,17 @@ import App from "./App";
 
 import "./index.css";
 
-// 🔐 Auth Context
 import { AuthProvider } from "./contexts/AuthContext";
-
-// 🧑‍💼 User Profile Context
 import { UserProvider } from "./contexts/UserContext";
 
-// 🌍 Language Context
-import { LanguageProvider } from "./contexts/LanguageContext";
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(
+  document.getElementById("root") as HTMLElement
+).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <UserProvider>
-          <LanguageProvider>
-            <App />
-          </LanguageProvider>
+          <App />
         </UserProvider>
       </AuthProvider>
     </BrowserRouter>

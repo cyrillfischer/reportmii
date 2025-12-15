@@ -256,15 +256,13 @@ export default function App() {
       />
 
       <Route
-        path="/dashboard/overview"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <DashboardOverview />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
+  path="/dashboard/overview"
+  element={
+    <div style={{ background: "#0f172a", minHeight: "100vh", color: "white", padding: 40 }}>
+      <h1>🧪 TEST: Route erreicht</h1>
+    </div>
+  }
+/>
 
       <Route
         path="/dashboard/analyses"
