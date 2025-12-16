@@ -6,25 +6,19 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
-  const [passwordRepeat, setPasswordRepeat] = useState("");
+  const [password2, setPassword2] = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // ✅ Check: Session MUSS über Recovery-Link vorhanden sein
+  // ⛔️ NICHT blockieren – Supabase setzt Session automatisch über den Link
   useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        setError("Auth session missing. Please open the reset link from the email.");
-      }
-    };
-    checkSession();
+    supabase.auth.getSession();
   }, []);
 
-  const handleSavePassword = async () => {
+  const savePassword = async () => {
     if (loading || success) return;
 
     setError(null);
@@ -39,14 +33,16 @@ export default function ResetPassword() {
       return;
     }
 
-    if (password !== passwordRepeat) {
+    if (password !== password2) {
       setError("Passwords do not match.");
       return;
     }
 
     setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
 
     if (error) {
       setError(error.message);
@@ -57,10 +53,10 @@ export default function ResetPassword() {
     setSuccess(true);
     setLoading(false);
 
-    // 🔁 Nach Reset sauber zurück zum Login
+    // 🔁 sauber zurück zum Login
     setTimeout(() => {
-      navigate("/login", { replace: true });
-    }, 1000);
+      navigate("/login");
+    }, 1200);
   };
 
   return (
@@ -68,23 +64,23 @@ export default function ResetPassword() {
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
         <h1 className="text-2xl font-semibold mb-2">Reset your password</h1>
         <p className="text-gray-500 mb-6 text-sm">
-          Choose a new password to securely regain access.
+          Choose a new password to regain access to your account.
         </p>
 
         <input
           type="password"
           placeholder="New password"
+          className="mb-3"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mb-3 w-full rounded-xl border px-4 py-3"
         />
 
         <input
           type="password"
           placeholder="Repeat new password"
-          value={passwordRepeat}
-          onChange={(e) => setPasswordRepeat(e.target.value)}
-          className="mb-4 w-full rounded-xl border px-4 py-3"
+          className="mb-4"
+          value={password2}
+          onChange={(e) => setPassword2(e.target.value)}
         />
 
         <label className="flex items-center gap-2 mb-4 text-sm text-gray-600">
@@ -96,7 +92,10 @@ export default function ResetPassword() {
           I confirm that I am the owner of this account.
         </label>
 
-        {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="mb-4 text-sm text-red-600">{error}</p>
+        )}
+
         {success && (
           <p className="mb-4 text-sm text-green-600">
             Password updated successfully. Redirecting…
@@ -104,7 +103,7 @@ export default function ResetPassword() {
         )}
 
         <button
-          onClick={handleSavePassword}
+          onClick={savePassword}
           disabled={loading || success}
           className="w-full rounded-full bg-[#8bbbbb] py-3 font-semibold disabled:opacity-50"
         >
