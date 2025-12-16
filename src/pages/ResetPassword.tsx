@@ -68,9 +68,7 @@ export default function ResetPassword() {
     if (isLikelyRecoveryFalseNegative(updateError.message || "")) {
       setSuccess(true);
       setLoading(false);
-      setTimeout(() => {
-        navigate("/login");
-      }, 1800);
+    
       return;
     }
 
