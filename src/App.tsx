@@ -224,14 +224,7 @@ export default function App() {
       />
 
       {/* Passwort-Flows bewusst ohne Header/Footer */}
-      <Route
-        path="/reset-password"
-        element={
-          <PasswordLayout>
-            <ResetPassword />
-          </PasswordLayout>
-        }
-      />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/update-password"
         element={
