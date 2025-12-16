@@ -6,23 +6,25 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
+  const [passwordRepeat, setPasswordRepeat] = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  // ✅ Supabase setzt die Session AUTOMATISCH über den Link
+  // ✅ Check: Session MUSS über Recovery-Link vorhanden sein
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
       if (!data.session) {
         setError("Auth session missing. Please open the reset link from the email.");
       }
-    });
+    };
+    checkSession();
   }, []);
 
-  const savePassword = async () => {
+  const handleSavePassword = async () => {
     if (loading || success) return;
 
     setError(null);
@@ -37,7 +39,7 @@ export default function ResetPassword() {
       return;
     }
 
-    if (password !== password2) {
+    if (password !== passwordRepeat) {
       setError("Passwords do not match.");
       return;
     }
@@ -55,9 +57,10 @@ export default function ResetPassword() {
     setSuccess(true);
     setLoading(false);
 
+    // 🔁 Nach Reset sauber zurück zum Login
     setTimeout(() => {
-      navigate("/login");
-    }, 1500);
+      navigate("/login", { replace: true });
+    }, 1000);
   };
 
   return (
@@ -65,23 +68,23 @@ export default function ResetPassword() {
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
         <h1 className="text-2xl font-semibold mb-2">Reset your password</h1>
         <p className="text-gray-500 mb-6 text-sm">
-          Choose a new password to regain access.
+          Choose a new password to securely regain access.
         </p>
 
         <input
           type="password"
           placeholder="New password"
-          className="mb-3"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="mb-3 w-full rounded-xl border px-4 py-3"
         />
 
         <input
           type="password"
           placeholder="Repeat new password"
-          className="mb-4"
-          value={password2}
-          onChange={(e) => setPassword2(e.target.value)}
+          value={passwordRepeat}
+          onChange={(e) => setPasswordRepeat(e.target.value)}
+          className="mb-4 w-full rounded-xl border px-4 py-3"
         />
 
         <label className="flex items-center gap-2 mb-4 text-sm text-gray-600">
@@ -101,7 +104,7 @@ export default function ResetPassword() {
         )}
 
         <button
-          onClick={savePassword}
+          onClick={handleSavePassword}
           disabled={loading || success}
           className="w-full rounded-full bg-[#8bbbbb] py-3 font-semibold disabled:opacity-50"
         >
