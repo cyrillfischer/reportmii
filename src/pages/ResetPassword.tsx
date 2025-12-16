@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabaseClient";
 
@@ -10,11 +10,24 @@ export default function ResetPassword() {
   const [confirmed, setConfirmed] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ⚠️ WICHTIG:
+  // Supabase setzt die Recovery-Session AUTOMATISCH,
+  // wir prüfen nur, ob sie existiert – ohne die Seite zu blockieren
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        setError(
+          "Bitte öffne den Passwort-zurücksetzen-Link direkt aus der E-Mail."
+        );
+      }
+    });
+  }, []);
+
   const savePassword = async () => {
-    if (loading || saved) return;
+    if (loading || success) return;
 
     setError(null);
 
@@ -35,27 +48,28 @@ export default function ResetPassword() {
 
     setLoading(true);
 
-    try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+    const { error } = await supabase.auth.updateUser({ password });
 
-      setSaved(true);
-
-      // kurzer Moment für UX, dann zurück zum Login
-      setTimeout(() => {
-        navigate("/login");
-      }, 1200);
-    } catch (err: any) {
-      setError(err?.message || "Passwort konnte nicht gespeichert werden.");
-    } finally {
+    if (error) {
+      setError(error.message);
       setLoading(false);
+      return;
     }
+
+    setSuccess(true);
+    setLoading(false);
+
+    // bewusst KEIN Auto-Redirect erzwingen
+    // User klickt selbst auf "Zurück zum Login"
   };
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-6">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-        <h1 className="text-2xl font-semibold mb-2">Passwort zurücksetzen</h1>
+        <h1 className="text-2xl font-semibold mb-2">
+          Passwort zurücksetzen
+        </h1>
+
         <p className="text-gray-500 mb-6 text-sm">
           Wähle ein neues Passwort, um wieder Zugriff auf dein Konto zu erhalten.
         </p>
@@ -63,7 +77,7 @@ export default function ResetPassword() {
         <input
           type="password"
           placeholder="Neues Passwort"
-          className="mb-3"
+          className="mb-3 w-full rounded-xl border px-4 py-3 text-sm"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -71,7 +85,7 @@ export default function ResetPassword() {
         <input
           type="password"
           placeholder="Neues Passwort wiederholen"
-          className="mb-4"
+          className="mb-4 w-full rounded-xl border px-4 py-3 text-sm"
           value={password2}
           onChange={(e) => setPassword2(e.target.value)}
         />
@@ -85,20 +99,26 @@ export default function ResetPassword() {
           Ich bestätige, dass ich der Inhaber dieses Accounts bin.
         </label>
 
-        {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="mb-4 text-sm text-red-600">{error}</p>
+        )}
 
-        {saved && (
+        {success && (
           <p className="mb-4 text-sm text-green-600">
-            Passwort gespeichert. Du wirst zum Login weitergeleitet …
+            Passwort erfolgreich gespeichert.
           </p>
         )}
 
         <button
           onClick={savePassword}
-          disabled={loading || saved}
+          disabled={loading || success}
           className="w-full rounded-full bg-[#8bbbbb] py-3 font-semibold disabled:opacity-50"
         >
-          {loading ? "Speichern …" : saved ? "Gespeichert ✓" : "Neues Passwort speichern →"}
+          {loading
+            ? "Speichern …"
+            : success
+            ? "Gespeichert ✓"
+            : "Neues Passwort speichern →"}
         </button>
 
         <div className="mt-6 text-center text-sm">
