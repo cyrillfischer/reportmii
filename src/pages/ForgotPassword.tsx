@@ -18,7 +18,9 @@ export default function ForgotPassword() {
     });
 
     if (error) {
-      setErrorMsg("Fehler beim Senden. Bitte prüfe deine E-Mail.");
+      setErrorMsg(
+        "Der Link konnte nicht gesendet werden. Bitte überprüfe deine E-Mail-Adresse."
+      );
       return;
     }
 
@@ -29,30 +31,36 @@ export default function ForgotPassword() {
     <div className="min-h-screen bg-white text-gray-900">
       <Header />
 
+      {/* HERO */}
       <section className="pt-40 pb-24 text-center bg-black text-white">
         <motion.h1
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-5xl font-bold mb-4"
+          transition={{ duration: 0.5 }}
+          className="text-4xl md:text-5xl font-bold mb-4 text-white"
         >
           Passwort vergessen?
         </motion.h1>
 
-        <p className="text-white/70 max-w-xl mx-auto leading-relaxed">
-          Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen.
+        <p className="text-gray-300 max-w-xl mx-auto leading-relaxed text-base md:text-lg">
+          Gib deine E-Mail-Adresse ein.  
+          Wir senden dir einen sicheren Link, mit dem du dein Passwort
+          zurücksetzen kannst.
         </p>
       </section>
 
+      {/* CONTENT */}
       <section className="py-24 px-6">
         <div className="max-w-lg mx-auto bg-white p-10 rounded-3xl shadow-xl border border-gray-200">
-
           {sent ? (
             <div className="text-center">
               <Send size={48} className="mx-auto text-green-600 mb-4" />
-              <h2 className="text-2xl font-semibold mb-2">E-Mail gesendet!</h2>
-              <p className="text-gray-600">
-                Prüfe dein Postfach und folge dem Link, um dein Passwort zurückzusetzen.
+              <h2 className="text-2xl font-semibold mb-2">
+                E-Mail wurde versendet
+              </h2>
+              <p className="text-gray-600 leading-relaxed">
+                Bitte überprüfe dein Postfach und folge dem Link in der E-Mail,
+                um ein neues Passwort festzulegen.
               </p>
             </div>
           ) : (
@@ -63,19 +71,25 @@ export default function ForgotPassword() {
                 </span>
                 <input
                   type="email"
+                  placeholder="deine@emailadresse.ch"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-black outline-none transition"
+                  className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-300
+                             focus:ring-2 focus:ring-[#8bbbbb] outline-none transition"
                 />
               </label>
 
               {errorMsg && (
-                <p className="text-red-500 text-center mb-4">{errorMsg}</p>
+                <p className="text-red-600 text-center mb-4">
+                  ❌ {errorMsg}
+                </p>
               )}
 
               <button
                 onClick={handleSend}
-                className="w-full bg-black text-white font-semibold py-4 rounded-full text-lg transition-all hover:bg-violet-700"
+                className="w-full bg-black text-white font-semibold py-4
+                           rounded-full text-lg transition disabled:opacity-50
+                           hover:bg-gray-900"
               >
                 Link senden →
               </button>
