@@ -17,15 +17,17 @@ export default function DashboardAccount() {
   const [logo, setLogo] = useState<string | null>(null);
   const [email, setEmail] = useState("");
 
-  // Profilfelder (alle leer initial)
+  // Pflichtfelder (initial leer)
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [company, setCompany] = useState("");
   const [website, setWebsite] = useState("");
   const [industry, setIndustry] = useState("");
+
+  // Optional
   const [subdomain, setSubdomain] = useState("");
 
-  // 🔑 E-Mail aus eingeloggter Session laden
+  // 🔑 E-Mail aus aktiver Supabase-Session laden
   useEffect(() => {
     const loadUser = async () => {
       const {
@@ -40,7 +42,7 @@ export default function DashboardAccount() {
     loadUser();
   }, []);
 
-  const handleLogoUpload = (e: any) => {
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
@@ -50,45 +52,46 @@ export default function DashboardAccount() {
 
   return (
     <DashboardLayout>
-      <div className="p-8 max-w-5xl mx-auto w-full">
+      <div className="w-full max-w-6xl mx-auto px-6 py-10">
         {/* HEADER */}
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
+          transition={{ duration: 0.4 }}
+          className="mb-10"
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
             Mein Account
           </h1>
-          <p className="text-gray-600 text-base md:text-lg mb-10">
-            Verwalte hier deine persönlichen Angaben sowie die wichtigsten
+          <p className="text-gray-600 max-w-2xl">
+            Vervollständige hier deine persönlichen Angaben und die wichtigsten
             Informationen zu deinem Unternehmen.  
-            Diese Daten werden für deine Analysen und Reports verwendet.
+            Diese Daten bilden die Grundlage für deine Analysen und Reports.
           </p>
         </motion.div>
 
         {/* CARD */}
         <motion.div
-          initial={{ opacity: 0, y: 6 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="bg-white border border-gray-200 rounded-2xl shadow p-8 md:p-10"
+          transition={{ duration: 0.4 }}
+          className="bg-white rounded-3xl border border-gray-200 shadow-lg p-8 md:p-10"
         >
-          {/* LOGO UPLOAD */}
+          {/* LOGO */}
           <div className="flex flex-col items-center mb-12">
-            <div className="relative w-32 h-32 rounded-full bg-gray-100 border border-gray-300 overflow-hidden shadow-inner flex items-center justify-center">
+            <div className="relative w-32 h-32 rounded-full bg-gray-50 border border-gray-200 overflow-hidden flex items-center justify-center">
               {logo ? (
                 <img
                   src={logo}
                   alt="Profilbild oder Firmenlogo"
-                  className="object-cover w-full h-full"
+                  className="w-full h-full object-cover"
                 />
               ) : (
-                <Upload size={32} className="text-gray-400" />
+                <Upload size={28} className="text-gray-400" />
               )}
             </div>
 
-            <label className="mt-4 cursor-pointer text-gray-700 hover:text-gray-900 font-medium">
+            <label className="mt-4 text-sm font-medium text-[#7eb6b8] cursor-pointer hover:underline">
               Profilbild oder Firmenlogo hochladen
               <input
                 type="file"
@@ -98,8 +101,8 @@ export default function DashboardAccount() {
               />
             </label>
 
-            <p className="text-gray-500 text-sm mt-2">
-              Empfohlenes Format: quadratisch, PNG oder JPEG
+            <p className="text-xs text-gray-500 mt-1">
+              Empfohlen: quadratisch, PNG oder JPEG
             </p>
           </div>
 
@@ -107,7 +110,7 @@ export default function DashboardAccount() {
           <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Vorname */}
             <div>
-              <label className="text-sm font-medium mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium mb-2">
                 <User size={16} /> Vorname *
               </label>
               <input
@@ -117,13 +120,13 @@ export default function DashboardAccount() {
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="Dein Vorname"
                 className="w-full px-4 py-3 rounded-xl border border-gray-300
-                  focus:ring-2 focus:ring-[#8bbbbb] outline-none"
+                  focus:ring-2 focus:ring-[#7eb6b8] outline-none"
               />
             </div>
 
             {/* Nachname */}
             <div>
-              <label className="text-sm font-medium mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium mb-2">
                 <User size={16} /> Nachname *
               </label>
               <input
@@ -133,27 +136,27 @@ export default function DashboardAccount() {
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Dein Nachname"
                 className="w-full px-4 py-3 rounded-xl border border-gray-300
-                  focus:ring-2 focus:ring-[#8bbbbb] outline-none"
+                  focus:ring-2 focus:ring-[#7eb6b8] outline-none"
               />
             </div>
 
             {/* E-Mail (readonly) */}
             <div>
-              <label className="text-sm font-medium mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium mb-2">
                 <Mail size={16} /> E-Mail-Adresse
               </label>
               <input
                 type="email"
                 value={email}
                 disabled
-                className="w-full px-4 py-3 rounded-xl border border-gray-300
+                className="w-full px-4 py-3 rounded-xl border border-gray-200
                   bg-gray-100 text-gray-600 cursor-not-allowed"
               />
             </div>
 
-            {/* Firma */}
+            {/* Unternehmen */}
             <div>
-              <label className="text-sm font-medium mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium mb-2">
                 <Building2 size={16} /> Unternehmen *
               </label>
               <input
@@ -163,13 +166,13 @@ export default function DashboardAccount() {
                 onChange={(e) => setCompany(e.target.value)}
                 placeholder="Name deines Unternehmens"
                 className="w-full px-4 py-3 rounded-xl border border-gray-300
-                  focus:ring-2 focus:ring-[#8bbbbb] outline-none"
+                  focus:ring-2 focus:ring-[#7eb6b8] outline-none"
               />
             </div>
 
             {/* Website */}
             <div>
-              <label className="text-sm font-medium mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium mb-2">
                 <Globe size={16} /> Unternehmens-Website *
               </label>
               <input
@@ -179,13 +182,13 @@ export default function DashboardAccount() {
                 onChange={(e) => setWebsite(e.target.value)}
                 placeholder="https://www.deinefirma.ch"
                 className="w-full px-4 py-3 rounded-xl border border-gray-300
-                  focus:ring-2 focus:ring-[#8bbbbb] outline-none"
+                  focus:ring-2 focus:ring-[#7eb6b8] outline-none"
               />
             </div>
 
             {/* Branche */}
             <div>
-              <label className="text-sm font-medium mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium mb-2">
                 <Palette size={16} /> Branche *
               </label>
               <input
@@ -195,13 +198,13 @@ export default function DashboardAccount() {
                 onChange={(e) => setIndustry(e.target.value)}
                 placeholder="z. B. Beratung, SaaS, Produktion"
                 className="w-full px-4 py-3 rounded-xl border border-gray-300
-                  focus:ring-2 focus:ring-[#8bbbbb] outline-none"
+                  focus:ring-2 focus:ring-[#7eb6b8] outline-none"
               />
             </div>
 
-            {/* Subdomain (optional) */}
+            {/* Subdomain */}
             <div className="md:col-span-2">
-              <label className="text-sm font-medium mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium mb-2">
                 <Link2 size={16} /> Inside.mii Subdomain (optional)
               </label>
 
@@ -212,26 +215,27 @@ export default function DashboardAccount() {
                   onChange={(e) => setSubdomain(e.target.value)}
                   placeholder="deinefirma"
                   className="flex-1 px-4 py-3 rounded-xl border border-gray-300
-                    focus:ring-2 focus:ring-[#8bbbbb] outline-none"
+                    focus:ring-2 focus:ring-[#7eb6b8] outline-none"
                 />
-                <span className="text-gray-600 text-sm">
+                <span className="text-sm text-gray-600">
                   .inside.reportmii.com
                 </span>
               </div>
 
-              <p className="text-gray-500 text-sm mt-1">
-                Über diese Adresse können Mitarbeitende anonym an deiner
+              <p className="text-xs text-gray-500 mt-1">
+                Mitarbeitende können über diese Adresse anonym an deiner
                 Team-Analyse teilnehmen.
               </p>
             </div>
           </form>
 
-          {/* SAVE BUTTON */}
+          {/* SAVE */}
           <div className="mt-10 text-center">
             <button
               type="submit"
-              className="bg-[#8bbbbb] hover:bg-[#7aa9a9] text-black
-                px-10 py-3 rounded-xl font-semibold transition shadow-md"
+              className="px-10 py-3 rounded-xl font-semibold
+                bg-[#7eb6b8] text-black shadow-md
+                hover:bg-[#6aa6a8] transition"
             >
               Änderungen speichern
             </button>
