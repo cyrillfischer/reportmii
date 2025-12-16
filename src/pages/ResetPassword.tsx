@@ -6,27 +6,18 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
+  const [passwordRepeat, setPasswordRepeat] = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ⚠️ WICHTIG:
-  // Supabase setzt die Recovery-Session AUTOMATISCH,
-  // wir prüfen nur, ob sie existiert – ohne die Seite zu blockieren
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        setError(
-          "Bitte öffne den Passwort-zurücksetzen-Link direkt aus der E-Mail."
-        );
-      }
-    });
-  }, []);
+  // ❗ WICHTIG:
+  // KEINE Fehlermeldung beim Laden anzeigen
+  // Supabase setzt die Session automatisch über den E-Mail-Link
 
-  const savePassword = async () => {
+  const handleSavePassword = async () => {
     if (loading || success) return;
 
     setError(null);
@@ -41,17 +32,21 @@ export default function ResetPassword() {
       return;
     }
 
-    if (password !== password2) {
+    if (password !== passwordRepeat) {
       setError("Die Passwörter stimmen nicht überein.");
       return;
     }
 
     setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await supabase.auth.updateUser({
+      password: password,
+    });
 
     if (error) {
-      setError(error.message);
+      setError(
+        "Das Passwort konnte nicht gespeichert werden. Bitte öffne den Reset-Link erneut aus der E-Mail."
+      );
       setLoading(false);
       return;
     }
@@ -59,8 +54,10 @@ export default function ResetPassword() {
     setSuccess(true);
     setLoading(false);
 
-    // bewusst KEIN Auto-Redirect erzwingen
-    // User klickt selbst auf "Zurück zum Login"
+    // Optionaler Redirect nach Login
+    setTimeout(() => {
+      navigate("/login");
+    }, 1800);
   };
 
   return (
@@ -69,7 +66,6 @@ export default function ResetPassword() {
         <h1 className="text-2xl font-semibold mb-2">
           Passwort zurücksetzen
         </h1>
-
         <p className="text-gray-500 mb-6 text-sm">
           Wähle ein neues Passwort, um wieder Zugriff auf dein Konto zu erhalten.
         </p>
@@ -77,7 +73,7 @@ export default function ResetPassword() {
         <input
           type="password"
           placeholder="Neues Passwort"
-          className="mb-3 w-full rounded-xl border px-4 py-3 text-sm"
+          className="mb-3"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
@@ -85,9 +81,9 @@ export default function ResetPassword() {
         <input
           type="password"
           placeholder="Neues Passwort wiederholen"
-          className="mb-4 w-full rounded-xl border px-4 py-3 text-sm"
-          value={password2}
-          onChange={(e) => setPassword2(e.target.value)}
+          className="mb-4"
+          value={passwordRepeat}
+          onChange={(e) => setPasswordRepeat(e.target.value)}
         />
 
         <label className="flex items-center gap-2 mb-4 text-sm text-gray-600">
@@ -99,26 +95,26 @@ export default function ResetPassword() {
           Ich bestätige, dass ich der Inhaber dieses Accounts bin.
         </label>
 
+        {/* Fehler */}
         {error && (
-          <p className="mb-4 text-sm text-red-600">{error}</p>
+          <p className="mb-4 text-sm text-red-600">
+            {error}
+          </p>
         )}
 
+        {/* Erfolg */}
         {success && (
           <p className="mb-4 text-sm text-green-600">
-            Passwort erfolgreich gespeichert.
+            ✅ Passwort wurde erfolgreich gespeichert.
           </p>
         )}
 
         <button
-          onClick={savePassword}
+          onClick={handleSavePassword}
           disabled={loading || success}
           className="w-full rounded-full bg-[#8bbbbb] py-3 font-semibold disabled:opacity-50"
         >
-          {loading
-            ? "Speichern …"
-            : success
-            ? "Gespeichert ✓"
-            : "Neues Passwort speichern →"}
+          {loading ? "Speichern…" : "Neues Passwort speichern →"}
         </button>
 
         <div className="mt-6 text-center text-sm">
