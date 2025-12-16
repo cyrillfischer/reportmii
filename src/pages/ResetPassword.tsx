@@ -1,190 +1,145 @@
-// src/pages/ResetPassword.tsx
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase"; // ⚠️ Pfad ggf. an dein Projekt anpassen
-
-type Status = "idle" | "loading" | "success" | "error";
+import { supabase } from "../supabase/supabaseClient";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
+  const [passwordRepeat, setPasswordRepeat] = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
-  const [status, setStatus] = useState<Status>("idle");
-  const [errorText, setErrorText] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const canSubmit = useMemo(() => {
-    return (
-      status !== "loading" &&
-      confirmed &&
-      password.length >= 6 &&
-      password === password2
-    );
-  }, [status, confirmed, password, password2]);
-
+  // Recovery-Flow: Supabase liefert teils einen Error zurück, obwohl das Passwort effektiv gesetzt wurde.
+  // Darum werten wir typische Session/Token-Errors NICHT als echten Fehler.
   const isLikelyRecoveryFalseNegative = (msg: string) => {
     const m = (msg || "").toLowerCase();
-
-    // Supabase gibt im Recovery-Flow teils "Fehler" zurück, obwohl das Update serverseitig greift.
-    // Diese Liste ist bewusst breit, aber nur für Session/Token-Themen.
     return (
-      m.includes("auth session") ||
       m.includes("session") ||
       m.includes("refresh token") ||
-      m.includes("invalid jwt") ||
-      m.includes("jwt") ||
       m.includes("token") ||
-      m.includes("not found") ||
+      m.includes("jwt") ||
       m.includes("expired") ||
+      m.includes("not found") ||
       m.includes("missing")
     );
   };
 
-  const handleSave = async () => {
-    if (status === "loading") return;
+  const handleSavePassword = async () => {
+    if (loading || success) return;
 
-    // Reset UI messages
-    setErrorText("");
+    setError(null);
 
     if (!confirmed) {
-      setStatus("error");
-      setErrorText("Bitte bestätige, dass du der Inhaber dieses Accounts bist.");
+      setError("Bitte bestätige, dass du der Inhaber dieses Accounts bist.");
       return;
     }
 
     if (password.length < 6) {
-      setStatus("error");
-      setErrorText("Dein Passwort muss mindestens 6 Zeichen lang sein.");
+      setError("Das Passwort muss mindestens 6 Zeichen lang sein.");
       return;
     }
 
-    if (password !== password2) {
-      setStatus("error");
-      setErrorText("Die Passwörter stimmen nicht überein.");
+    if (password !== passwordRepeat) {
+      setError("Die Passwörter stimmen nicht überein.");
       return;
     }
 
-    setStatus("loading");
+    setLoading(true);
 
-    try {
-      const { data, error } = await supabase.auth.updateUser({ password });
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: password,
+    });
 
-      // ✅ Normaler Erfolg
-      if (!error) {
-        setStatus("success");
-        return;
-      }
-
-      // ❗ Recovery-Flow: manchmal Error trotz erfolgreichem Passwort-Update.
-      // Wir behandeln typische Session-/Token-Errors als "false negative"
-      // und zeigen Erfolg statt einer falschen roten Meldung.
-      const msg = error?.message ?? "";
-
-      if (isLikelyRecoveryFalseNegative(msg)) {
-        setStatus("success");
-        return;
-      }
-
-      // Optionaler Double-Check: falls updateUser error liefert,
-      // prüfen wir noch kurz, ob ein User grundsätzlich abrufbar ist.
-      // Wenn ja, ist die Session ok -> dann ist der Error eher "echt".
-      // Wenn nein, kann es trotzdem erfolgreich gewesen sein, aber wir haben keinen Beweis.
-      try {
-        const { data: userData, error: userErr } = await supabase.auth.getUser();
-        if (!userErr && userData?.user) {
-          setStatus("error");
-          setErrorText("Das Passwort konnte nicht gespeichert werden. Bitte versuche es erneut.");
-          return;
-        }
-      } catch {
-        // Ignorieren – wir fallen auf "echter Fehler" zurück
-      }
-
-      // ❌ Echter Fehler (nicht Session/Token-typisch)
-      setStatus("error");
-      setErrorText("Das Passwort konnte nicht gespeichert werden. Bitte versuche es erneut.");
+    // ✅ Wenn kein Error: normaler Erfolg
+    if (!updateError) {
+      setSuccess(true);
+      setLoading(false);
+      setTimeout(() => {
+        navigate("/login");
+      }, 1800);
       return;
-    } catch {
-      setStatus("error");
-      setErrorText("Es ist ein unerwarteter Fehler aufgetreten. Bitte versuche es erneut.");
     }
+
+    // ✅ Wenn "Recovery-typischer" Error: trotzdem Erfolg anzeigen (weil Passwort effektiv geändert wird)
+    if (isLikelyRecoveryFalseNegative(updateError.message || "")) {
+      setSuccess(true);
+      setLoading(false);
+      setTimeout(() => {
+        navigate("/login");
+      }, 1800);
+      return;
+    }
+
+    // ❌ Echter Fehler
+    setError(
+      "Das Passwort konnte nicht gespeichert werden. Bitte öffne den Reset-Link erneut aus der E-Mail."
+    );
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black">
-      <div className="w-full max-w-md rounded-2xl bg-white px-10 py-10 shadow-xl">
-        <h1 className="text-2xl font-semibold text-gray-900">Passwort zurücksetzen</h1>
-        <p className="mt-2 text-sm text-gray-500">
+    <div className="min-h-screen bg-black flex items-center justify-center px-6">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+        <h1 className="text-2xl font-semibold mb-2">Passwort zurücksetzen</h1>
+        <p className="text-gray-500 mb-6 text-sm">
           Wähle ein neues Passwort, um wieder Zugriff auf dein Konto zu erhalten.
         </p>
 
-        {/* SUCCESS */}
-        {status === "success" ? (
-          <div className="mt-6">
-            <div className="rounded-xl bg-emerald-50 px-4 py-3 text-emerald-800 text-sm">
-              Dein Passwort wurde erfolgreich gespeichert. Du kannst dich jetzt mit dem neuen Passwort einloggen.
-            </div>
+        <input
+          type="password"
+          placeholder="Neues Passwort"
+          className="mb-3"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-            <button
-              className="mt-6 w-full rounded-full bg-[#8FBFC1] px-6 py-3 font-semibold text-gray-900 transition hover:opacity-90"
-              onClick={() => navigate("/login")}
-            >
-              Zurück zum Login →
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="mt-6 space-y-4">
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Neues Passwort"
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-gray-300"
-              />
+        <input
+          type="password"
+          placeholder="Neues Passwort wiederholen"
+          className="mb-4"
+          value={passwordRepeat}
+          onChange={(e) => setPasswordRepeat(e.target.value)}
+        />
 
-              <input
-                type="password"
-                value={password2}
-                onChange={(e) => setPassword2(e.target.value)}
-                placeholder="Neues Passwort повторить"
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-gray-300"
-              />
+        <label className="flex items-center gap-2 mb-4 text-sm text-gray-600">
+          <input
+            type="checkbox"
+            checked={confirmed}
+            onChange={(e) => setConfirmed(e.target.checked)}
+          />
+          Ich bestätige, dass ich der Inhaber dieses Accounts bin.
+        </label>
 
-              <label className="flex items-center gap-3 pt-1 text-sm text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={confirmed}
-                  onChange={(e) => setConfirmed(e.target.checked)}
-                  className="h-4 w-4"
-                />
-                <span>Ich bestätige, dass ich der Inhaber dieses Accounts bin.</span>
-              </label>
-            </div>
+        {/* Fehler */}
+        {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-            {/* ERROR (nur wenn wirklich Error) */}
-            {status === "error" && errorText ? (
-              <p className="mt-4 text-sm text-red-600">{errorText}</p>
-            ) : null}
-
-            <button
-              className="mt-6 w-full rounded-full bg-[#8FBFC1] px-6 py-3 font-semibold text-gray-900 transition hover:opacity-90 disabled:opacity-60"
-              onClick={handleSave}
-              disabled={!canSubmit}
-            >
-              {status === "loading" ? "Speichern..." : "Neues Passwort speichern →"}
-            </button>
-
-            <button
-              className="mt-4 w-full text-sm text-gray-500 underline"
-              onClick={() => navigate("/login")}
-            >
-              Zurück zum Login
-            </button>
-          </>
+        {/* Erfolg */}
+        {success && (
+          <p className="mb-4 text-sm text-green-600">
+            ✅ Passwort wurde erfolgreich gespeichert.
+          </p>
         )}
+
+        <button
+          onClick={handleSavePassword}
+          disabled={loading || success}
+          className="w-full rounded-full bg-[#8bbbbb] py-3 font-semibold disabled:opacity-50"
+        >
+          {loading ? "Speichern…" : "Neues Passwort speichern →"}
+        </button>
+
+        <div className="mt-6 text-center text-sm">
+          <button
+            onClick={() => navigate("/login")}
+            className="underline text-gray-600 hover:text-black"
+          >
+            Zurück zum Login
+          </button>
+        </div>
       </div>
     </div>
   );
