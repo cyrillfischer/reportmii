@@ -9,28 +9,25 @@ export default function ResetPassword() {
   const [passwordRepeat, setPasswordRepeat] = useState("");
   const [confirmed, setConfirmed] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Recovery-Flow: Supabase liefert teils einen Error zurück, obwohl das Passwort effektiv gesetzt wurde.
-  // Darum werten wir typische Session/Token-Errors NICHT als echten Fehler.
   const isLikelyRecoveryFalseNegative = (msg: string) => {
     const m = (msg || "").toLowerCase();
     return (
       m.includes("session") ||
-      m.includes("refresh token") ||
       m.includes("token") ||
       m.includes("jwt") ||
       m.includes("expired") ||
-      m.includes("not found") ||
-      m.includes("missing")
+      m.includes("not found")
     );
   };
 
   const handleSavePassword = async () => {
     if (loading || success) return;
-
     setError(null);
 
     if (!confirmed) {
@@ -51,28 +48,15 @@ export default function ResetPassword() {
     setLoading(true);
 
     const { error: updateError } = await supabase.auth.updateUser({
-      password: password,
+      password,
     });
 
-    // ✅ Wenn kein Error: normaler Erfolg
-    if (!updateError) {
+    if (!updateError || isLikelyRecoveryFalseNegative(updateError.message)) {
       setSuccess(true);
       setLoading(false);
-      setTimeout(() => {
-        navigate("/login");
-      }, 1800);
       return;
     }
 
-    // ✅ Wenn "Recovery-typischer" Error: trotzdem Erfolg anzeigen (weil Passwort effektiv geändert wird)
-    if (isLikelyRecoveryFalseNegative(updateError.message || "")) {
-      setSuccess(true);
-      setLoading(false);
-    
-      return;
-    }
-
-    // ❌ Echter Fehler
     setError(
       "Das Passwort konnte nicht gespeichert werden. Bitte öffne den Reset-Link erneut aus der E-Mail."
     );
@@ -82,38 +66,68 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-6">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-        <h1 className="text-2xl font-semibold mb-2">Passwort zurücksetzen</h1>
+        <h1 className="text-2xl font-semibold mb-2">
+          Passwort zurücksetzen
+        </h1>
         <p className="text-gray-500 mb-6 text-sm">
           Wähle ein neues Passwort, um wieder Zugriff auf dein Konto zu erhalten.
         </p>
 
-        <input
-          type="password"
-          placeholder="Neues Passwort"
-          className="mb-3"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        {/* Neues Passwort */}
+        <div className="relative mb-3">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Neues Passwort"
+            className="w-full pr-12"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            {showPassword ? "🙈" : "👁️"}
+          </button>
+        </div>
 
-        <input
-          type="password"
-          placeholder="Neues Passwort wiederholen"
-          className="mb-4"
-          value={passwordRepeat}
-          onChange={(e) => setPasswordRepeat(e.target.value)}
-        />
+        {/* Passwort wiederholen */}
+        <div className="relative mb-5">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Neues Passwort wiederholen"
+            className="w-full pr-12"
+            value={passwordRepeat}
+            onChange={(e) => setPasswordRepeat(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            {showPassword ? "🙈" : "👁️"}
+          </button>
+        </div>
 
-        <label className="flex items-center gap-2 mb-4 text-sm text-gray-600">
+        {/* Bestätigung */}
+        <label className="flex items-start gap-3 mb-5 text-sm text-gray-600 cursor-pointer">
           <input
             type="checkbox"
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
+            className="mt-1 h-5 w-5 rounded border-gray-300 text-[#8bbbbb] focus:ring-[#8bbbbb]"
           />
-          Ich bestätige, dass ich der Inhaber dieses Accounts bin.
+          <span className="leading-relaxed">
+            Ich bestätige, dass ich der Inhaber dieses Accounts bin.
+          </span>
         </label>
 
         {/* Fehler */}
-        {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="mb-4 text-sm text-red-600">
+            {error}
+          </p>
+        )}
 
         {/* Erfolg */}
         {success && (
