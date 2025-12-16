@@ -13,9 +13,15 @@ export default function ForgotPassword() {
   const handleSend = async () => {
     setErrorMsg("");
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
+    if (!email) {
+      setErrorMsg("Bitte gib deine E-Mail-Adresse ein.");
+      return;
+    }
+
+    // ✅ WICHTIG:
+    // KEIN redirectTo hier!
+    // Der Reset-Link wird vollständig über {{ .ConfirmationURL }} im Template gesteuert.
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
 
     if (error) {
       setErrorMsg(
@@ -71,6 +77,7 @@ export default function ForgotPassword() {
                 </span>
                 <input
                   type="email"
+                  required
                   placeholder="deine@emailadresse.ch"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
