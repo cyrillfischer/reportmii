@@ -138,15 +138,15 @@ export default function App() {
       />
 
       <Route
-        path="/dashboard/account"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <DashboardAccount />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
+  path="/dashboard/account"
+  element={
+    <ProtectedRoute>
+      <DashboardLayout>
+        <DashboardAccount />
+      </DashboardLayout>
+    </ProtectedRoute>
+  }
+/>
 
       {/* 🧠 Analyse */}
       <Route path="/analysis/new" element={<ProtectedRoute><DashboardLayout><NewAnalysis /></DashboardLayout></ProtectedRoute>} />
