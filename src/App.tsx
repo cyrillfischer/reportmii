@@ -33,7 +33,7 @@ import ResetPassword from "./pages/ResetPassword";
 // 📊 Dashboards
 import DashboardRedirect from "./pages/dashboard/DashboardRedirect";
 import { DashboardAnalyses } from "./pages/business/DashboardAnalyses";
-import { DashboardAccount } from "./pages/business/DashboardAccount";
+import DashboardAccount from "./pages/DashboardAccount";
 
 // 🧠 Analyse Workflow
 import { NewAnalysis } from "./pages/NewAnalysis";
