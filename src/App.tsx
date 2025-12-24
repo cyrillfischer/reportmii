@@ -60,7 +60,10 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 
-// ✅ Inside Invite Page (öffentlich)
+// 🌐 Context
+import { LanguageProvider } from "./contexts/LanguageContext";
+
+// ✅ Inside Invite Page
 import InsideInvitePage from "./pages/inside/InsideInvitePage";
 
 // ==============================
@@ -122,11 +125,18 @@ export default function App() {
       <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* ✅ Inside Invite – ÖFFENTLICH */}
+      {/* ✅ Inside Invite – öffentlich */}
       <Route path="/inside/invite" element={<InsideInvitePage />} />
 
-      {/* ✅ NEU: Öffentlicher Fragebogen für Invite-Teilnehmer */}
-      <Route path="/inside/questionnaire/:id" element={<Questionnaire />} />
+      {/* ✅ Öffentlicher Questionnaire (Invite) – mit LanguageProvider */}
+      <Route
+        path="/inside/questionnaire/:id"
+        element={
+          <LanguageProvider>
+            <Questionnaire />
+          </LanguageProvider>
+        }
+      />
 
       {/* 📊 Dashboard Root */}
       <Route
@@ -148,7 +158,7 @@ export default function App() {
       <Route path="/dashboard/billing" element={<ProtectedRoute><DashboardLayout><DashboardBilling /></DashboardLayout></ProtectedRoute>} />
       <Route path="/dashboard/account" element={<ProtectedRoute><DashboardLayout><DashboardAccount /></DashboardLayout></ProtectedRoute>} />
 
-      {/* 🧠 Analyse (geschützt, intern) */}
+      {/* 🧠 Analyse (intern, geschützt) */}
       <Route path="/analysis/new" element={<ProtectedRoute><DashboardLayout><NewAnalysis /></DashboardLayout></ProtectedRoute>} />
       <Route path="/analysis/configure" element={<ProtectedRoute><DashboardLayout><AnalysisConfiguration /></DashboardLayout></ProtectedRoute>} />
       <Route path="/analysis/questionnaire/:id" element={<ProtectedRoute><DashboardLayout><Questionnaire /></DashboardLayout></ProtectedRoute>} />
