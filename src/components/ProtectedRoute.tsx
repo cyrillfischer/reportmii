@@ -1,18 +1,42 @@
 import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/inside/invite",
+];
 
 export function ProtectedRoute({ children }: { children: JSX.Element }) {
+  const auth = useAuth() as any;
   const location = useLocation();
 
-  // ✅ INVITE-LINKS SIND ÖFFENTLICH (kein Login nötig)
-  if (location.pathname.startsWith("/inside/invite")) {
-    return children;
-  }
-
-  // 🔥 DEV-BYPASS: IMMER REIN AUF LOCALHOST
+  // Dev-Bypass (optional)
   if (import.meta.env.VITE_DEV_BYPASS_AUTH === "true") {
     return children;
   }
 
-  // ❌ Produktion / ohne Login → Login-Seite
-  return <Navigate to="/login" replace />;
+  // Falls dein AuthContext ein Loading kennt
+  if (auth?.loading) {
+    return null;
+  }
+
+  // Öffentliche Routen erlauben
+  const isPublic = PUBLIC_PATHS.some((path) =>
+    location.pathname.startsWith(path)
+  );
+
+  if (isPublic) {
+    return children;
+  }
+
+  // Kein Login → redirect
+  if (!auth || !auth.user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 }

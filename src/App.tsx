@@ -60,7 +60,7 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 
-// ✅ Inside Invite Page (öffentlich, token-basiert)
+// ✅ Inside Invite Page (öffentlich)
 import InsideInvitePage from "./pages/inside/InsideInvitePage";
 
 // ==============================
@@ -125,6 +125,9 @@ export default function App() {
       {/* ✅ Inside Invite – ÖFFENTLICH */}
       <Route path="/inside/invite" element={<InsideInvitePage />} />
 
+      {/* ✅ NEU: Öffentlicher Fragebogen für Invite-Teilnehmer */}
+      <Route path="/inside/questionnaire/:id" element={<Questionnaire />} />
+
       {/* 📊 Dashboard Root */}
       <Route
         path="/dashboard"
@@ -141,15 +144,11 @@ export default function App() {
       <Route path="/dashboard/inside" element={<ProtectedRoute><DashboardLayout><DashboardInside /></DashboardLayout></ProtectedRoute>} />
       <Route path="/dashboard/analyses" element={<ProtectedRoute><DashboardLayout><DashboardAnalyses /></DashboardLayout></ProtectedRoute>} />
       <Route path="/dashboard/reports" element={<ProtectedRoute><DashboardLayout><DashboardReports /></DashboardLayout></ProtectedRoute>} />
-
-      {/* ✅ TEAM & BILLING */}
       <Route path="/dashboard/team" element={<ProtectedRoute><DashboardLayout><DashboardTeam /></DashboardLayout></ProtectedRoute>} />
       <Route path="/dashboard/billing" element={<ProtectedRoute><DashboardLayout><DashboardBilling /></DashboardLayout></ProtectedRoute>} />
-
-      {/* ACCOUNT */}
       <Route path="/dashboard/account" element={<ProtectedRoute><DashboardLayout><DashboardAccount /></DashboardLayout></ProtectedRoute>} />
 
-      {/* 🧠 Analyse */}
+      {/* 🧠 Analyse (geschützt, intern) */}
       <Route path="/analysis/new" element={<ProtectedRoute><DashboardLayout><NewAnalysis /></DashboardLayout></ProtectedRoute>} />
       <Route path="/analysis/configure" element={<ProtectedRoute><DashboardLayout><AnalysisConfiguration /></DashboardLayout></ProtectedRoute>} />
       <Route path="/analysis/questionnaire/:id" element={<ProtectedRoute><DashboardLayout><Questionnaire /></DashboardLayout></ProtectedRoute>} />

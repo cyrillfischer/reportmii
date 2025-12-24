@@ -22,10 +22,10 @@ export default function InsideInvitePage() {
 
     const handleInvite = async () => {
       try {
-        // 🔁 Bereits teilgenommen? → direkt weiterleiten
+        // 🔁 Bereits teilgenommen? → direkt weiterleiten (ÖFFENTLICH)
         const existingParticipant = localStorage.getItem(PARTICIPANT_KEY);
         if (existingParticipant) {
-          navigate(`/analysis/questionnaire/${existingParticipant}`);
+          navigate(`/inside/questionnaire/${existingParticipant}`);
           return;
         }
 
@@ -66,11 +66,11 @@ export default function InsideInvitePage() {
           return;
         }
 
-        // 4️⃣ Teilnahme lokal speichern (Mehrfachteilnahme verhindern)
+        // 4️⃣ Teilnahme lokal speichern
         localStorage.setItem(PARTICIPANT_KEY, participant.id);
 
-        // 5️⃣ Weiterleitung zum Fragebogen
-        navigate(`/analysis/questionnaire/${participant.id}`);
+        // 5️⃣ Weiterleitung zum ÖFFENTLICHEN Fragebogen
+        navigate(`/inside/questionnaire/${participant.id}`);
       } catch {
         setStatus("error");
       }
