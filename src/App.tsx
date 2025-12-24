@@ -32,15 +32,21 @@ import ResetPassword from "./pages/ResetPassword";
 
 // 📊 Dashboards
 import DashboardRedirect from "./pages/dashboard/DashboardRedirect";
-import { DashboardAnalyses } from "./pages/business/DashboardAnalyses";
+import DashboardHome from "./pages/dashboard/DashboardHome";
+import DashboardBusiness from "./pages/dashboard/DashboardBusiness";
+import DashboardInside from "./pages/dashboard/DashboardInside";
+import DashboardAnalyses from "./pages/dashboard/DashboardAnalyses";
+import DashboardReports from "./pages/dashboard/DashboardReports";
+import DashboardTeam from "./pages/dashboard/DashboardTeam";
+import DashboardBilling from "./pages/dashboard/DashboardBilling";
 import DashboardAccount from "./pages/DashboardAccount";
 
 // 🧠 Analyse Workflow
 import { NewAnalysis } from "./pages/NewAnalysis";
 import { AnalysisConfiguration } from "./pages/AnalysisConfiguration";
 import { Questionnaire } from "./pages/Questionnaire";
-import { AnalysisList } from "./pages/AnalysisList";
-import { Report } from "./pages/Report";
+import AnalysisList from "./pages/AnalysisList";
+import Report from "./pages/Report";
 import { Settings } from "./pages/Settings";
 
 // 📄 Legal
@@ -53,6 +59,9 @@ import ContactPage from "./pages/ContactPage";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { DashboardLayout } from "./layouts/DashboardLayout";
+
+// ✅ Inside Invite Page (öffentlich, token-basiert)
+import InsideInvitePage from "./pages/inside/InsideInvitePage";
 
 // ==============================
 // Layouts
@@ -88,6 +97,7 @@ export default function App() {
 
   return (
     <Routes>
+
       {/* 🌍 Public */}
       <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
       <Route path="/business" element={<BusinessPage />} />
@@ -111,12 +121,12 @@ export default function App() {
       {/* 🔑 Auth */}
       <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
       <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
-
-      {/* 🔥 PASSWORD RESET – WICHTIG */}
-      {/* ❗️OHNE Layout, damit Supabase Recovery sauber funktioniert */}
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* 📊 Dashboard */}
+      {/* ✅ Inside Invite – ÖFFENTLICH */}
+      <Route path="/inside/invite" element={<InsideInvitePage />} />
+
+      {/* 📊 Dashboard Root */}
       <Route
         path="/dashboard"
         element={
@@ -126,27 +136,19 @@ export default function App() {
         }
       />
 
-      <Route
-        path="/dashboard/analyses"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <DashboardAnalyses />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
+      {/* 📊 Dashboard Sections */}
+      <Route path="/dashboard/home" element={<ProtectedRoute><DashboardLayout><DashboardHome /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/dashboard/business" element={<ProtectedRoute><DashboardLayout><DashboardBusiness /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/dashboard/inside" element={<ProtectedRoute><DashboardLayout><DashboardInside /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/dashboard/analyses" element={<ProtectedRoute><DashboardLayout><DashboardAnalyses /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/dashboard/reports" element={<ProtectedRoute><DashboardLayout><DashboardReports /></DashboardLayout></ProtectedRoute>} />
 
-      <Route
-  path="/dashboard/account"
-  element={
-    <ProtectedRoute>
-      <DashboardLayout>
-        <DashboardAccount />
-      </DashboardLayout>
-    </ProtectedRoute>
-  }
-/>
+      {/* ✅ TEAM & BILLING */}
+      <Route path="/dashboard/team" element={<ProtectedRoute><DashboardLayout><DashboardTeam /></DashboardLayout></ProtectedRoute>} />
+      <Route path="/dashboard/billing" element={<ProtectedRoute><DashboardLayout><DashboardBilling /></DashboardLayout></ProtectedRoute>} />
+
+      {/* ACCOUNT */}
+      <Route path="/dashboard/account" element={<ProtectedRoute><DashboardLayout><DashboardAccount /></DashboardLayout></ProtectedRoute>} />
 
       {/* 🧠 Analyse */}
       <Route path="/analysis/new" element={<ProtectedRoute><DashboardLayout><NewAnalysis /></DashboardLayout></ProtectedRoute>} />
@@ -164,6 +166,7 @@ export default function App() {
 
       {/* ❌ Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
+
     </Routes>
   );
 }

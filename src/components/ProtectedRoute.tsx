@@ -1,53 +1,18 @@
-// src/components/ProtectedRoute.tsx
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import { supabase } from "../supabase/supabaseClient";
+import { Navigate, useLocation } from "react-router-dom";
 
 export function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const [loading, setLoading] = useState(true);
-  const [hasSession, setHasSession] = useState<boolean | null>(null);
+  const location = useLocation();
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!isMounted) return;
-
-      setHasSession(!!session);
-      setLoading(false);
-    };
-
-    checkSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!isMounted) return;
-        setHasSession(!!session);
-      }
-    );
-
-    return () => {
-      isMounted = false;
-      listener.subscription.unsubscribe();
-    };
-  }, []);
-
-  // 🔄 WICHTIG: NIE null rendern
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0b0f19] text-white">
-        Lädt…
-      </div>
-    );
+  // ✅ INVITE-LINKS SIND ÖFFENTLICH (kein Login nötig)
+  if (location.pathname.startsWith("/inside/invite")) {
+    return children;
   }
 
-  if (!hasSession) {
-    return <Navigate to="/login" replace />;
+  // 🔥 DEV-BYPASS: IMMER REIN AUF LOCALHOST
+  if (import.meta.env.VITE_DEV_BYPASS_AUTH === "true") {
+    return children;
   }
 
-  return children;
+  // ❌ Produktion / ohne Login → Login-Seite
+  return <Navigate to="/login" replace />;
 }

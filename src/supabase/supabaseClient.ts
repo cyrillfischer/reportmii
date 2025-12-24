@@ -1,20 +1,19 @@
+// src/supabase/supabaseClient.ts
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL!,
-  import.meta.env.VITE_SUPABASE_ANON_KEY!,
-  {
-    auth: {
-      persistSession: true,
-      storage: localStorage,
-      detectSessionInUrl: true,
-    },
-    global: {
-      headers: {
-        "x-application-name": "Reportmii",
-      },
-    },
-  }
-);
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-export { supabase };
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: localStorage,
+  },
+  global: {
+    headers: {
+      "x-application-name": "Reportmii",
+    },
+  },
+});

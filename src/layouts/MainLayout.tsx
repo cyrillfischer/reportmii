@@ -8,10 +8,15 @@ interface MainLayoutProps {
   hideFooter?: boolean;
 }
 
-export default function MainLayout({ children, background, hideFooter = false }: MainLayoutProps) {
+export default function MainLayout({
+  children,
+  background,
+  hideFooter = false,
+}: MainLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col relative bg-white">
-      {/* Optional animated background */}
+    <div className="min-h-screen flex flex-col relative bg-white text-gray-900">
+      
+      {/* Optionaler Background (z. B. Landing Animation) */}
       {background && (
         <div className="absolute inset-0 -z-10 overflow-hidden">
           {background}
@@ -21,7 +26,7 @@ export default function MainLayout({ children, background, hideFooter = false }:
       {/* Header */}
       <Header />
 
-      {/* Main content */}
+      {/* Main Content */}
       <main className="flex-1">
         {children}
       </main>
