@@ -97,7 +97,6 @@ export default function App() {
 
   return (
     <Routes>
-
       {/* 🌍 Public */}
       <Route path="/" element={<PublicLayout><LandingPage /></PublicLayout>} />
       <Route path="/business" element={<BusinessPage />} />
@@ -153,10 +152,7 @@ export default function App() {
       {/* 🧠 Analyse */}
       <Route path="/analysis/new" element={<ProtectedRoute><DashboardLayout><NewAnalysis /></DashboardLayout></ProtectedRoute>} />
       <Route path="/analysis/configure" element={<ProtectedRoute><DashboardLayout><AnalysisConfiguration /></DashboardLayout></ProtectedRoute>} />
-      <Route
-  path="/analysis/questionnaire/:id"
-  element={<Questionnaire />}
-/>
+      <Route path="/analysis/questionnaire/:id" element={<ProtectedRoute><DashboardLayout><Questionnaire /></DashboardLayout></ProtectedRoute>} />
       <Route path="/analyses" element={<ProtectedRoute><DashboardLayout><AnalysisList /></DashboardLayout></ProtectedRoute>} />
       <Route path="/report/:id" element={<ProtectedRoute><DashboardLayout><Report /></DashboardLayout></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><DashboardLayout><Settings /></DashboardLayout></ProtectedRoute>} />
@@ -169,7 +165,6 @@ export default function App() {
 
       {/* ❌ Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
-
     </Routes>
   );
 }
