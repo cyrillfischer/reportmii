@@ -113,8 +113,9 @@ export default function AnalysisList() {
               {isActive ? (
                 <button
                   onClick={() =>
-                    navigate(`/analysis/new?analysis=${item.id}`)
-                  }
+  navigate(`/analysis/configure/${item.id}`)
+
+}
                   className="
                     inline-flex items-center gap-2
                     bg-[#1b1f23] text-white
