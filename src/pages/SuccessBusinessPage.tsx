@@ -1,8 +1,29 @@
+import { useEffect } from "react";
 import { Header } from "../components/Header";
 import { motion } from "framer-motion";
 import { CheckCircle, Mail, LogIn, FileText } from "lucide-react";
+import { supabase } from "../supabase/supabaseClient";
 
 export default function SuccessBusinessPage() {
+  useEffect(() => {
+    const activateBusinessPlan = async () => {
+      // 1) Aktive Session holen
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.user) return;
+
+      // 2) Business-Flag setzen (idempotent → true bleibt true)
+      await supabase
+        .from("profiles")
+        .update({ plan_business_active: true })
+        .eq("id", session.user.id);
+    };
+
+    activateBusinessPlan();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* HEADER */}

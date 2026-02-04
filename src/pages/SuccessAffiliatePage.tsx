@@ -1,20 +1,26 @@
-// src/pages/SuccessAffiliatePage.tsx
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle, Mail, LogIn, BarChart3 } from "lucide-react";
 import { Header } from "../components/Header";
-import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabase/supabaseClient";
 
 export default function SuccessAffiliatePage() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  // Weiterleitung falls bereits eingeloggt
   useEffect(() => {
-    if (loading) return;
-    if (user?.role === "affiliate") navigate("/affiliate-dashboard");
-  }, [user, loading, navigate]);
+    const activateAffiliatePlan = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.user) return;
+
+      await supabase
+        .from("profiles")
+        .update({ plan_affiliate_active: true })
+        .eq("id", session.user.id);
+    };
+
+    activateAffiliatePlan();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -35,8 +41,8 @@ export default function SuccessAffiliatePage() {
           </h1>
 
           <p className="text-white/80 max-w-2xl mx-auto text-lg leading-relaxed">
-            Willkommen im Reportmii Affiliate-Programm!  
-            Dein Zugang wird jetzt vorbereitet.
+            Willkommen im Reportmii Affiliate-Programm.  
+            Dein Zugang ist jetzt freigeschaltet.
           </p>
         </motion.div>
       </section>
@@ -49,7 +55,6 @@ export default function SuccessAffiliatePage() {
 
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
 
-          {/* Schritt 1 */}
           <div className="bg-white p-10 rounded-3xl shadow-lg border border-gray-200 text-left">
             <Mail className="w-10 h-10 text-[#7eb6b8] mb-6" />
             <h3 className="text-xl font-semibold mb-2">1. E-Mail prüfen</h3>
@@ -58,21 +63,19 @@ export default function SuccessAffiliatePage() {
             </p>
           </div>
 
-          {/* Schritt 2 */}
           <div className="bg-white p-10 rounded-3xl shadow-lg border border-gray-200 text-left">
             <LogIn className="w-10 h-10 text-[#7eb6b8] mb-6" />
-            <h3 className="text-xl font-semibold mb-2">2. Automatischer Login</h3>
+            <h3 className="text-xl font-semibold mb-2">2. Einloggen</h3>
             <p className="text-gray-700 leading-relaxed">
-              Nach der Bestätigung wirst du automatisch eingeloggt.
+              Logge dich ein und öffne dein Affiliate-Dashboard.
             </p>
           </div>
 
-          {/* Schritt 3 */}
           <div className="bg-white p-10 rounded-3xl shadow-lg border border-gray-200 text-left">
             <BarChart3 className="w-10 h-10 text-[#7eb6b8] mb-6" />
-            <h3 className="text-xl font-semibold mb-2">3. Dashboard freigeschaltet</h3>
+            <h3 className="text-xl font-semibold mb-2">3. Links & Statistiken</h3>
             <p className="text-gray-700 leading-relaxed">
-              Dort findest du deinen persönlichen Affiliate-Link und Statistiken.
+              Erhalte deinen persönlichen Affiliate-Link und verfolge deine Einnahmen.
             </p>
           </div>
 

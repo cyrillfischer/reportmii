@@ -71,7 +71,7 @@ export default function DashboardBilling() {
 
           {CUSTOMER_STATUS.isReturningCustomer ? (
             <p className="text-sm text-gray-700">
-              🎉 Vielen Dank für deine letzte Analyse!  
+              🎉 Vielen Dank für deine letzte Analyse!
             </p>
           ) : (
             <p className="text-sm text-gray-600">
@@ -91,8 +91,14 @@ export default function DashboardBilling() {
           {INVOICES.map((inv) => (
             <div
               key={inv.id}
-              className="flex justify-between items-center px-4 py-3 rounded-xl border"
+              className="
+                flex flex-col sm:flex-row
+                sm:justify-between sm:items-center
+                gap-3 sm:gap-0
+                px-4 py-3 rounded-xl border
+              "
             >
+              {/* LEFT */}
               <div>
                 <p className="text-sm font-medium">
                   {inv.product}
@@ -102,7 +108,11 @@ export default function DashboardBilling() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-6">
+              {/* RIGHT */}
+              <div className="
+                flex flex-wrap sm:flex-nowrap
+                items-center gap-4 sm:gap-6
+              ">
                 <span className="text-sm font-medium">
                   {inv.amount}
                 </span>

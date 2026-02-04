@@ -145,34 +145,38 @@ export default function DashboardTeam() {
           Einladungs-Link
         </p>
 
-        <div className="flex items-center gap-3">
+        {/* ✅ MOBILE FIX: nur Klassen ergänzt, Logik unverändert */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <input
             value={ANALYSIS.inviteLink}
             readOnly
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 bg-gray-50 text-sm"
+            className="w-full sm:flex-1 px-4 py-3 rounded-xl border border-gray-300 bg-gray-50 text-sm"
           />
 
-          <button
-            className="w-11 h-11 rounded-xl border flex items-center justify-center hover:bg-gray-100 transition"
-            title="Link kopieren"
-            onClick={() => navigator.clipboard.writeText(ANALYSIS.inviteLink)}
-          >
-            <Copy size={16} />
-          </button>
+          {/* Buttons auf Mobile untereinander/sauber, Desktop wie vorher */}
+          <div className="flex gap-3 w-full sm:w-auto">
+            <button
+              className="w-11 h-11 rounded-xl border flex items-center justify-center hover:bg-gray-100 transition shrink-0"
+              title="Link kopieren"
+              onClick={() => navigator.clipboard.writeText(ANALYSIS.inviteLink)}
+            >
+              <Copy size={16} />
+            </button>
 
-          <button
-            onClick={handleSendInviteMail}
-            disabled={limitReached}
-            className={`
-              px-5 py-3 rounded-xl transition flex items-center gap-2
-              ${limitReached
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-[#7eb6b8] text-black hover:bg-[#1b1f23] hover:text-white"}
-            `}
-          >
-            <Mail size={16} />
-            Einladung senden
-          </button>
+            <button
+              onClick={handleSendInviteMail}
+              disabled={limitReached}
+              className={`
+                flex-1 sm:flex-none px-5 py-3 rounded-xl transition flex items-center justify-center gap-2
+                ${limitReached
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-[#7eb6b8] text-black hover:bg-[#1b1f23] hover:text-white"}
+              `}
+            >
+              <Mail size={16} />
+              Einladung senden
+            </button>
+          </div>
         </div>
 
         {/* ✅ HIER – NICHT IM BUTTON */}

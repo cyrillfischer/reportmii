@@ -29,40 +29,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   // -------------------------------------------------------------
-  // LOAD EXISTING SESSION + USER METADATA (z. B. role)
+  // INIT SESSION + AUTH LISTENER
   // -------------------------------------------------------------
   useEffect(() => {
-    const loadSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      const session = data?.session;
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+
+      const session = data.session;
 
       if (session?.user) {
-        const { data: userDetails } = await supabase.auth.getUser();
-
         setUser({
-          id: userDetails.user?.id!,
-          email: userDetails.user?.email!,
-          role: userDetails.user?.user_metadata.role ?? null,
+          id: session.user.id,
+          email: session.user.email!,
+          role: session.user.user_metadata?.role ?? null,
         });
+      } else {
+        setUser(null);
       }
 
       setLoading(false);
-    };
+    });
 
-    loadSession();
-
-    // -------------------------------------------------------------
-    // AUTH STATE LISTENER
-    // -------------------------------------------------------------
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (session?.user) {
-          const { data: userDetails } = await supabase.auth.getUser();
+      (_event, session) => {
+        if (!mounted) return;
 
+        if (session?.user) {
           setUser({
-            id: userDetails.user?.id!,
-            email: userDetails.user?.email!,
-            role: userDetails.user?.user_metadata.role ?? null,
+            id: session.user.id,
+            email: session.user.email!,
+            role: session.user.user_metadata?.role ?? null,
           });
         } else {
           setUser(null);
@@ -70,7 +68,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   // -------------------------------------------------------------
@@ -82,16 +83,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
     });
 
-    if (error) throw new Error(error.message);
+    if (error) throw error;
 
-    // Benutzer nochmal abrufen, damit auch Metadaten (role) korrekt geladen werden
-    const { data: userDetails } = await supabase.auth.getUser();
+    if (data.session?.user) {
+      const u = data.session.user;
 
-    if (userDetails?.user) {
-      const userData = {
-        id: userDetails.user.id,
-        email: userDetails.user.email!,
-        role: userDetails.user.user_metadata.role ?? null,
+      const userData: UserData = {
+        id: u.id,
+        email: u.email!,
+        role: u.user_metadata?.role ?? null,
       };
 
       setUser(userData);
@@ -102,20 +102,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // -------------------------------------------------------------
-  // SIGN UP  (WICHTIG: KEIN DEFAULT BUSINESS MEHR!)
+  // SIGN UP
   // -------------------------------------------------------------
   const signUp = async (email: string, password: string, role: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { role }, // Rolle in user_metadata speichern
+        data: { role },
       },
     });
 
-    if (error) throw new Error(error.message);
-
-    alert("Bitte bestätige deine E-Mail.");
+    if (error) throw error;
   };
 
   // -------------------------------------------------------------
@@ -127,22 +125,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        signIn,
-        signUp,
-        signOut,
-      }}
-    >
-      {!loading && children}
-    </AuthContext.Provider>
+   <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+  {!loading && children}
+</AuthContext.Provider>
   );
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth muss innerhalb von AuthProvider verwendet werden");
+  if (!context) {
+    throw new Error(
+      "useAuth muss innerhalb von AuthProvider verwendet werden"
+    );
+  }
   return context;
 }

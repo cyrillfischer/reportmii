@@ -1,10 +1,12 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Download,
   Mail,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  FileText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -13,48 +15,69 @@ import type { ComponentProps } from "react";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-/* PDF WORKER – Vite + pdfjs v5.4.296 */
+import { supabase } from "../../supabase/supabaseClient";
+
+/* PDF WORKER */
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-/* Typen sauber aus react-pdf ableiten */
+/* react-pdf types */
 type DocumentProps = ComponentProps<typeof Document>;
 type OnLoadSuccess = NonNullable<DocumentProps["onLoadSuccess"]>;
 type OnLoadSuccessArg = Parameters<OnLoadSuccess>[0];
+
+type Analysis = {
+  id: string;
+  type: string;
+  status: "active" | "completed";
+  pdf_url: string | null;
+  created_at: string;
+};
 
 export default function DashboardReports() {
   const navigate = useNavigate();
   const viewerRef = useRef<HTMLDivElement | null>(null);
 
-  const [openReportId, setOpenReportId] = useState<number | null>(null);
-  const [numPages, setNumPages] = useState<number>(0);
-  const [pageNumber, setPageNumber] = useState<number>(1);
+  /* PDF VIEWER STATE */
+  const [numPages, setNumPages] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false); // ✅ NEU
 
-  /* ALLE REPORTS – NICHTS ENTFERNT */
-  const reports = [
-    {
-      id: 1,
-      title: "Business.mii Analyse – Q4 2025",
-      date: "14. November 2025",
-      type: "business",
-      pdf: "/report/smuk-gmbh_businessmii_2025-12-18_test.pdf",
-    },
-    {
-      id: 2,
-      title: "Inside.mii Team Analyse – 25 Mitarbeitende",
-      date: "03. Oktober 2025",
-      type: "inside",
-      pdf: "/report/smuk-gmbh_businessmii_2025-12-18_test.pdf",
-    },
-    {
-      id: 3,
-      title: "Business.mii Folgeanalyse – Q2 2025",
-      date: "21. Juni 2025",
-      type: "business",
-      pdf: "/report/smuk-gmbh_businessmii_2025-12-18_test.pdf",
-    },
-  ];
+  /* DATA */
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadLatestAnalysis = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("analyses")
+        .select("id, type, status, pdf_url, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data) {
+        setAnalysis(data);
+      }
+
+      setLoading(false);
+    };
+
+    loadLatestAnalysis();
+  }, []);
+
+  if (loading) return null;
 
   return (
     <div className="relative space-y-14 max-w-6xl mx-auto px-6 pb-32">
@@ -83,158 +106,79 @@ export default function DashboardReports() {
         <h1 className="text-4xl font-semibold text-[#1b1f23]">
           Deine Reports
         </h1>
-
-        <p className="text-gray-600 max-w-2xl mt-2">
-          Öffne abgeschlossene Analysen als interaktiven Report oder lade sie als PDF herunter.
-        </p>
       </motion.div>
 
-      {/* REPORT LIST */}
-      <div className="space-y-6">
-        {reports.map((r, i) => (
-          <div key={r.id} className="space-y-4">
-            {/* REPORT CARD */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="bg-white border border-gray-200
-                         rounded-2xl p-6 shadow-sm
-                         flex items-center justify-between gap-6"
-            >
-              <div className="flex items-center gap-4">
-                {/* ICON */}
-                <div className="w-20 h-20 rounded-xl bg-[#dff7f5]
-                                shadow-inner
-                                flex items-center justify-center">
-                  <img
-                    src="/illustrations/business/20_business.mii_analyse.png"
-                    alt="Analyse"
-                    className="w-16 h-16 object-contain"
-                  />
-                </div>
+      {/* KEINE ANALYSE */}
+      {!analysis && (
+        <div className="rounded-2xl border bg-white p-10 text-center">
+          <FileText className="mx-auto mb-4 text-gray-400" size={36} />
+          <h3 className="text-lg font-medium">
+            Noch keine Reports vorhanden
+          </h3>
+        </div>
+      )}
 
-                <div>
-                  <h3 className="text-lg font-medium text-[#1b1f23]">
-                    {r.title}
-                  </h3>
-                  <p className="text-sm text-gray-500">{r.date}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    setOpenReportId(openReportId === r.id ? null : r.id);
-                    setPageNumber(1);
-                    setNumPages(0);
-                    setPdfError(null);
-                  }}
-                  className="w-44 px-5 py-3 rounded-xl
-                             bg-[#7eb6b8] text-black
-                             hover:bg-[#1b1f23] hover:text-white transition"
-                >
-                  Report öffnen
-                </button>
-
-                <a
-                  href={r.pdf}
-                  download
-                  className="w-14 h-14 rounded-xl
-                             flex items-center justify-center
-                             bg-white border border-gray-300
-                             hover:bg-[#1b1f23] hover:text-white transition"
-                >
-                  <Download size={18} />
-                </a>
-              </div>
-            </motion.div>
-
-            {/* INLINE REPORT VIEWER – BUCH */}
-            {openReportId === r.id && (
-              <motion.div
-                ref={viewerRef}
-                initial={false}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.15 }}
-                className="bg-[#f7fafa] border border-gray-200
-                           rounded-2xl p-6 shadow-inner"
-              >
-                {/* NAVIGATION */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-600">
-                    Seite {pageNumber}
-                    {pageNumber > 1 && pageNumber + 1 <= numPages
-                      ? `–${pageNumber + 1}`
-                      : ""} von {numPages}
-                  </span>
-
-                  <div className="flex gap-2">
-                    <button
-                      disabled={pageNumber <= 1}
-                      onClick={() =>
-                        setPageNumber((p) => Math.max(1, p === 1 ? 1 : p - 2))
-                      }
-                      className="w-10 h-10 rounded-lg border
-                                 flex items-center justify-center
-                                 disabled:opacity-30"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-
-                    <button
-                      disabled={pageNumber >= numPages}
-                      onClick={() =>
-                        setPageNumber((p) =>
-                          p === 1 ? 3 : Math.min(numPages, p + 2)
-                        )
-                      }
-                      className="w-10 h-10 rounded-lg border
-                                 flex items-center justify-center
-                                 disabled:opacity-30"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* PDF */}
-                <div className="flex justify-center">
-                  <Document
-                    file={r.pdf}
-                    onLoadSuccess={(pdf: OnLoadSuccessArg) => {
-                      setNumPages(pdf.numPages);
-                      setPdfError(null);
-                    }}
-                    onLoadError={() =>
-                      setPdfError(
-                        "PDF konnte nicht geladen werden. Öffne es bitte über das Download-Icon."
-                      )
-                    }
-                  >
-                    {pageNumber === 1 ? (
-                      <Page pageNumber={1} width={450} renderTextLayer={false} />
-                    ) : (
-                      <div className="flex gap-6">
-                        <Page pageNumber={pageNumber} width={450} renderTextLayer={false} />
-                        {pageNumber + 1 <= numPages && (
-                          <Page pageNumber={pageNumber + 1} width={450} renderTextLayer={false} />
-                        )}
-                      </div>
-                    )}
-                  </Document>
-                </div>
-
-                {pdfError && (
-                  <div className="text-sm text-red-500 mt-4 text-center">
-                    {pdfError}
-                  </div>
-                )}
-              </motion.div>
-            )}
+      {/* REPORT WIRD ERSTELLT */}
+      {analysis && analysis.status === "active" && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-orange-200 bg-[#fff7ed] p-8"
+        >
+          <div className="flex items-center gap-4">
+            <Clock className="text-orange-400" size={28} />
+            <div>
+              <h3 className="text-lg font-semibold">
+                Dein Report wird erstellt
+              </h3>
+            </div>
           </div>
-        ))}
-      </div>
+        </motion.div>
+      )}
+
+      {/* REPORT FERTIG */}
+      {analysis && analysis.status === "completed" && analysis.pdf_url && (
+        <motion.div
+          ref={viewerRef}
+          className="bg-[#f7fafa] border border-gray-200
+                     rounded-2xl p-6 shadow-inner"
+        >
+          {/* LOADER */}
+          {pdfLoading && (
+            <div className="text-sm text-gray-500 mb-3 text-center">
+              Report wird geladen …
+            </div>
+          )}
+
+          {/* PDF */}
+          <div className="flex justify-center">
+            <Document
+              file={analysis.pdf_url}
+              onLoadSuccess={(pdf: OnLoadSuccessArg) => {
+                setNumPages(pdf.numPages);
+                setPdfLoading(false);
+                setPdfError(null);
+              }}
+              onLoadError={() => {
+                setPdfLoading(false);
+                setPdfError("PDF konnte nicht geladen werden.");
+              }}
+              loading={() => {
+                setPdfLoading(true);
+                return null;
+              }}
+            >
+              <Page pageNumber={pageNumber} width={500} renderTextLayer={false} />
+            </Document>
+          </div>
+
+          {pdfError && (
+            <div className="text-sm text-red-500 mt-4 text-center">
+              {pdfError}
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* MAIL ICON */}
       <a

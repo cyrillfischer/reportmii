@@ -17,6 +17,7 @@ import { AffiliateRegisterPage } from "./pages/AffiliateRegisterPage";
 import BusinessCheckoutPage from "./pages/BusinessCheckoutPage";
 import InsideCheckoutPage from "./pages/InsideCheckoutPage";
 import PartnerCheckoutPage from "./pages/PartnerCheckoutPage";
+import CheckoutAnalysis from "./pages/checkout/CheckoutAnalysis"; // ✅ NEU
 
 // 🎉 Success Pages
 import SuccessBusinessPage from "./pages/SuccessBusinessPage";
@@ -42,12 +43,15 @@ import DashboardBilling from "./pages/dashboard/DashboardBilling";
 import DashboardAccount from "./pages/DashboardAccount";
 
 // 🧠 Analyse Workflow
-import { NewAnalysis } from "./pages/NewAnalysis";
+import NewAnalysis from "./pages/NewAnalysis";
+import AnalysisLayout from "./layouts/AnalysisLayout";
 import { AnalysisConfiguration } from "./pages/AnalysisConfiguration";
-import { Questionnaire } from "./pages/Questionnaire";
-import AnalysisList from "./pages/AnalysisList";
-import Report from "./pages/Report";
-import { Settings } from "./pages/Settings";
+import AnalysisBlocks from "./pages/analysis/AnalysisBlocks";
+import Questionnaire from "./pages/Questionnaire";
+import AnalysisStep3 from "./pages/analysis/AnalysisStep3";
+import AnalysisStep4 from "./pages/analysis/AnalysisStep4";
+import AnalysisStep5 from "./pages/analysis/AnalysisStep5";
+import AnalysisSuccess from "./pages/analysis/AnalysisSuccess";
 
 // 📄 Legal
 import ImpressumPage from "./pages/ImpressumPage";
@@ -113,6 +117,18 @@ export default function App() {
       <Route path="/inside-checkout" element={<PublicLayout><InsideCheckoutPage /></PublicLayout>} />
       <Route path="/partner-checkout" element={<PublicLayout><PartnerCheckoutPage /></PublicLayout>} />
 
+      {/* ✅ Analyse Checkout (NEU, FIX) */}
+      <Route
+        path="/checkout/analysis"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <CheckoutAnalysis />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+
       {/* 🎉 Success */}
       <Route path="/success-business" element={<AuthLayout><SuccessBusinessPage /></AuthLayout>} />
       <Route path="/success-inside" element={<AuthLayout><SuccessInsidePage /></AuthLayout>} />
@@ -121,14 +137,14 @@ export default function App() {
       <Route path="/success-register" element={<AuthLayout><SuccessRegisterPage /></AuthLayout>} />
 
       {/* 🔑 Auth */}
-      <Route path="/login" element={<AuthLayout><Login /></AuthLayout>} />
+      <Route path="/login" element={<Login />} />
       <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* ✅ Inside Invite – öffentlich */}
+      {/* ✅ Inside Invite */}
       <Route path="/inside/invite" element={<InsideInvitePage />} />
 
-      {/* ✅ Öffentlicher Questionnaire (Invite) – mit LanguageProvider */}
+      {/* Öffentlicher Questionnaire */}
       <Route
         path="/inside/questionnaire/:id"
         element={
@@ -138,17 +154,8 @@ export default function App() {
         }
       />
 
-      {/* 📊 Dashboard Root */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardRedirect />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* 📊 Dashboard Sections */}
+      {/* 📊 Dashboard */}
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
       <Route path="/dashboard/home" element={<ProtectedRoute><DashboardLayout><DashboardHome /></DashboardLayout></ProtectedRoute>} />
       <Route path="/dashboard/business" element={<ProtectedRoute><DashboardLayout><DashboardBusiness /></DashboardLayout></ProtectedRoute>} />
       <Route path="/dashboard/inside" element={<ProtectedRoute><DashboardLayout><DashboardInside /></DashboardLayout></ProtectedRoute>} />
@@ -158,22 +165,59 @@ export default function App() {
       <Route path="/dashboard/billing" element={<ProtectedRoute><DashboardLayout><DashboardBilling /></DashboardLayout></ProtectedRoute>} />
       <Route path="/dashboard/account" element={<ProtectedRoute><DashboardLayout><DashboardAccount /></DashboardLayout></ProtectedRoute>} />
 
-      {/* 🧠 Analyse (intern, geschützt) */}
-      <Route path="/analysis/new" element={<ProtectedRoute><DashboardLayout><NewAnalysis /></DashboardLayout></ProtectedRoute>} />
+      {/* 🧠 Analyse – START */}
       <Route
-  path="/analysis/configure/:analysisId"
+        path="/analysis/new"
+        element={
+          <DashboardLayout>
+            <NewAnalysis />
+          </DashboardLayout>
+        }
+      />
+
+      {/* 🧠 Analyse – Steps */}
+      <Route
+        path="/analysis/:analysisId/step/1"
+        element={<ProtectedRoute><DashboardLayout><AnalysisLayout step={1}><AnalysisConfiguration /></AnalysisLayout></DashboardLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/analysis/:analysisId/step/2"
+        element={<ProtectedRoute><DashboardLayout><AnalysisLayout step={2}><AnalysisBlocks /></AnalysisLayout></DashboardLayout></ProtectedRoute>}
+      />
+  <Route
+  path="/analysis/:analysisId/step/3"
+  element={
+    <ProtectedRoute>
+      <LanguageProvider>
+        <AnalysisLayout step={3}>
+          <AnalysisStep3 />
+        </AnalysisLayout>
+      </LanguageProvider>
+    </ProtectedRoute>
+  }
+/>
+
+
+      <Route
+        path="/analysis/:analysisId/step/4"
+        element={<ProtectedRoute><DashboardLayout><AnalysisLayout step={4}><AnalysisStep4 /></AnalysisLayout></DashboardLayout></ProtectedRoute>}
+      />
+      <Route
+        path="/analysis/:analysisId/step/5"
+        element={<ProtectedRoute><DashboardLayout><AnalysisLayout step={5}><AnalysisStep5 /></AnalysisLayout></DashboardLayout></ProtectedRoute>}
+      />
+
+<Route
+  path="/analysis/success"
   element={
     <ProtectedRoute>
       <DashboardLayout>
-        <AnalysisConfiguration />
+        <AnalysisSuccess />
       </DashboardLayout>
     </ProtectedRoute>
   }
 />
-      <Route path="/analysis/questionnaire/:id" element={<ProtectedRoute><DashboardLayout><Questionnaire /></DashboardLayout></ProtectedRoute>} />
-      <Route path="/analyses" element={<ProtectedRoute><DashboardLayout><AnalysisList /></DashboardLayout></ProtectedRoute>} />
-      <Route path="/report/:id" element={<ProtectedRoute><DashboardLayout><Report /></DashboardLayout></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><DashboardLayout><Settings /></DashboardLayout></ProtectedRoute>} />
+
 
       {/* 📄 Legal */}
       <Route path="/impressum" element={<PublicLayout><ImpressumPage /></PublicLayout>} />

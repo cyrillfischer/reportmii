@@ -1,9 +1,11 @@
-// src/contexts/UserContext.tsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../supabase/supabaseClient";
 
+/* =========================
+   TYPES
+========================= */
 
-type UserProfile = {
+export type UserProfile = {
   id: string;
   email: string;
   first_name?: string;
@@ -12,8 +14,13 @@ type UserProfile = {
   website?: string;
   country?: string;
   logo_url?: string;
+
   plan_business_active?: boolean;
   plan_inside_active?: boolean;
+  plan_partner_active?: boolean;
+plan_affiliate_active?: boolean;
+
+
   created_at?: string;
 };
 
@@ -23,48 +30,63 @@ type UserContextType = {
   refreshProfile: () => Promise<void>;
 };
 
+/* =========================
+   CONTEXT
+========================= */
+
 const UserContext = createContext<UserContextType>({
   profile: null,
   loading: true,
   refreshProfile: async () => {},
 });
 
+/* =========================
+   PROVIDER
+========================= */
+
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ---------------------------------------------------------------------------
-  // 🔥 Profile aus Supabase holen
-  // ---------------------------------------------------------------------------
   const loadProfile = async () => {
     setLoading(true);
 
+    // 1) Session holen (stabil für Localhost & Prod)
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-    if (!user) {
+    if (sessionError || !session?.user) {
       setProfile(null);
       setLoading(false);
       return;
     }
 
+    const user = session.user;
+
+    // 2) Profil laden
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
 
-    if (!error && data) {
-      setProfile(data as UserProfile);
+    if (error || !data) {
+      setProfile(null);
+      setLoading(false);
+      return;
     }
+
+    // 3) Profil setzen
+    setProfile({
+      ...(data as UserProfile),
+      email: data.email ?? user.email ?? "",
+    });
 
     setLoading(false);
   };
 
-  // ---------------------------------------------------------------------------
-  // 🔁 Auto-Reload bei Login / Logout / Token Refresh
-  // ---------------------------------------------------------------------------
   useEffect(() => {
     loadProfile();
 
@@ -90,7 +112,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// ---------------------------------------------------------------------------
-// 🔧 Custom Hook
-// ---------------------------------------------------------------------------
+/* =========================
+   HOOK
+========================= */
+
 export const useUser = () => useContext(UserContext);

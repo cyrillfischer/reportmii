@@ -4,9 +4,9 @@ import {
   CheckCircle2,
   Lock,
   ChevronDown,
+  Mail,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Mail } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /* TEMP DATA – später Supabase                                         */
@@ -70,7 +70,7 @@ const scoreColor = (score: number) => {
 };
 
 const buttonClass =
-  "w-44 px-5 py-3 rounded-xl bg-[#7eb6b8] text-[#1b1f23] border border-[#7eb6b8] hover:bg-[#1b1f23] hover:text-white transition";
+  "px-5 py-3 rounded-xl bg-[#7eb6b8] text-[#1b1f23] border border-[#7eb6b8] hover:bg-[#1b1f23] hover:text-white transition";
 
 /* ------------------------------------------------------------------ */
 /* COMPONENT                                                          */
@@ -87,12 +87,12 @@ export default function DashboardAnalyses() {
   };
 
   return (
-    <div className="relative space-y-14 max-w-6xl mx-auto px-6 pb-32">
+    <div className="relative space-y-14 max-w-6xl mx-auto px-4 md:px-6 pb-32">
 
       {/* USER ICON */}
       <button
         onClick={() => navigate("/dashboard/account")}
-        className="fixed top-6 right-6 z-50 w-11 h-11 flex items-center justify-center rounded-full bg-white shadow hover:bg-[#1b1f23] hover:text-white transition"
+        className="fixed top-20 md:top-6 right-4 md:right-6 z-40 w-11 h-11 flex items-center justify-center rounded-full bg-white shadow hover:bg-[#1b1f23] hover:text-white transition"
       >
         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="9" cy="6" r="3" />
@@ -106,7 +106,7 @@ export default function DashboardAnalyses() {
           Analysen
         </span>
 
-        <h1 className="text-4xl font-semibold text-[#1b1f23]">
+        <h1 className="text-3xl md:text-4xl font-semibold text-[#1b1f23]">
           Deine Analysen
         </h1>
 
@@ -116,7 +116,7 @@ export default function DashboardAnalyses() {
       </div>
 
       {/* BUSINESS ANALYSE */}
-      <div className="bg-[#e6f7f6] rounded-2xl p-6 flex justify-between items-center border border-[#7eb6b8] shadow-sm">
+      <div className="bg-[#e6f7f6] rounded-2xl p-6 flex flex-col md:flex-row md:justify-between md:items-center gap-5 border border-[#7eb6b8] shadow-sm">
         <div className="flex gap-4 items-start">
           <CheckCircle2 />
           <div>
@@ -129,7 +129,7 @@ export default function DashboardAnalyses() {
         </div>
 
         <button
-          className={buttonClass}
+          className={`${buttonClass} w-full md:w-44`}
           onClick={() => setOpenAnalysis(!openAnalysis)}
         >
           Analyse anschauen
@@ -182,7 +182,7 @@ export default function DashboardAnalyses() {
       {ANALYSES.filter(a => a.id !== "business-mii").map((analysis) => (
         <div
           key={analysis.id}
-          className="rounded-2xl p-6 flex justify-between items-center border shadow-sm bg-white"
+          className="rounded-2xl p-6 flex flex-col md:flex-row md:justify-between md:items-center gap-5 border shadow-sm bg-white"
         >
           <div className="flex gap-4 items-start">
             <Lock />
@@ -199,25 +199,16 @@ export default function DashboardAnalyses() {
             </div>
           </div>
 
-          {/* BUTTON MIT LINK ZUM CHECKOUT */}
           <button
             onClick={() =>
               navigate(`/inside-checkout?teamSize=${analysis.teamSize}`)
             }
-            className="
-              group
-              w-44 px-5 py-3 rounded-xl
-              bg-[#7eb6b8]
-              border border-[#7eb6b8]
-              transition
-              flex flex-col items-center justify-center
-              hover:bg-[#1b1f23]
-            "
+            className="group w-full md:w-44 px-5 py-3 rounded-xl bg-[#7eb6b8] border border-[#7eb6b8] transition flex flex-col items-center justify-center hover:bg-[#1b1f23]"
           >
             <span className="text-xs text-gray-800 group-hover:text-white">
               Jetzt kaufen
             </span>
-            <span className="text-lg font-bold text-black-600 group-hover:text-white">
+            <span className="text-lg font-bold group-hover:text-white">
               {analysis.discountedPrice}
             </span>
           </button>
