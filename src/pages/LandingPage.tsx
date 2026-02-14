@@ -151,15 +151,15 @@ export function LandingPage() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="
-          text-4xl sm:text-5xl md:text-6xl lg:text-7xl 
-          font-semibold tracking-tight text-gray-900 
-          leading-[1.15]
+          text-3xl sm:text-5xl md:text-6xl lg:text-7xl
+font-semibold tracking-tight text-gray-900
+leading-[1.15] break-words
         "
       >
         Die schnellste<br />
         <span className="text-[#50969a]">Unternehmensanalyse</span><br />
 
-        <span className="inline-block h-[1.2em] whitespace-nowrap overflow-hidden">
+       <span className="inline-block min-h-[1.2em] break-words sm:whitespace-nowrap">
           für&nbsp;
           {sentences[index].substring(0, subIndex)}
           <span className="inline-block w-1">{blink ? "|" : " "}</span>

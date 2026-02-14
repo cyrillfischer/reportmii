@@ -52,10 +52,10 @@ export default function AnalysisStep5() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-semibold text-[#1b1f23]">
-          Analyse abschließen
+          Analyse abschliessen
         </h2>
         <p className="mt-2 text-sm text-[#1b1f23]/70 max-w-xl">
-          Du hast alle Schritte abgeschlossen. Mit dem Abschließen startest du
+          Du hast alle Schritte abgeschlossen. Mit dem Abschliessen startest du
           die Erstellung deines persönlichen Analyse-Reports.
         </p>
       </div>
@@ -77,7 +77,7 @@ export default function AnalysisStep5() {
       {/* Hinweis */}
       <div className="mt-6 text-sm text-[#1b1f23]/60 max-w-xl space-y-2">
         <p>
-          Nach dem Abschließen wird deine Analyse automatisch verarbeitet.
+          Nach dem Abschliessen wird deine Analyse automatisch verarbeitet.
           In der Regel erhältst du deinen ausführlichen Report innerhalb der
           nächsten <strong>24 Stunden</strong>.
         </p>
@@ -88,23 +88,26 @@ export default function AnalysisStep5() {
       </div>
 
       {/* Footer */}
-      <div className="mt-10 flex items-center justify-between">
-        <Button
-          variant="secondary"
-          className="h-12 px-6 rounded-2xl"
-          onClick={() => navigate(`/analysis/${analysisId}/step/4`)}
-        >
-          ← Zurück
-        </Button>
+     <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <Button
+    variant="secondary"
+    className="h-12 w-full sm:w-auto px-6 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap"
+    onClick={() => navigate(`/analysis/${analysisId}/step/4`)}
+  >
+    <span>←</span>
+    <span>Zurück</span>
+  </Button>
 
-        <Button
-          variant="primary"
-          className="h-12 px-8 rounded-2xl"
-          onClick={finishAnalysis}
-        >
-          Analyse abschließen ✓
-        </Button>
-      </div>
+  <Button
+    variant="primary"
+    className="h-12 w-full sm:w-auto px-8 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap"
+    onClick={finishAnalysis}
+  >
+    <span>Analyse abschliessen</span>
+    <span>✓</span>
+  </Button>
+</div>
+
     </motion.div>
   );
 }

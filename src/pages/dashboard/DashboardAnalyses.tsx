@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
@@ -7,9 +7,10 @@ import {
   Mail,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { businessBlocks } from "../../data/blockTemplates";
 
 /* ------------------------------------------------------------------ */
-/* TEMP DATA – später Supabase                                         */
+/* TEMP DATA – später Supabase                                        */
 /* ------------------------------------------------------------------ */
 
 const ANALYSES = [
@@ -48,25 +49,17 @@ const ANALYSES = [
   },
 ];
 
-const BLOCKS = [
-  { title: "Strategie & Vision", score: 82 },
-  { title: "Prozesse & Effizienz", score: 64 },
-  { title: "Team & Kultur", score: 91 },
-  { title: "Marketing & Vertrieb", score: 58 },
-  { title: "Finanzen & Steuerung", score: 47 },
-  { title: "Innovation & Zukunft", score: 73 },
-];
-
 /* ------------------------------------------------------------------ */
 /* HELPERS                                                            */
 /* ------------------------------------------------------------------ */
 
-const scoreColor = (score: number) => {
-  if (score <= 40) return "bg-red-400";
-  if (score <= 55) return "bg-orange-400";
-  if (score <= 70) return "bg-yellow-300";
-  if (score <= 85) return "bg-green-300";
-  return "bg-green-500";
+const getEmojiSrc = (score: number) => {
+  if (score <= 10) return "/illustrations/emojis/1. Sehr schlecht.png";
+  if (score <= 25) return "/illustrations/emojis/2. Schlecht.png";
+  if (score <= 40) return "/illustrations/emojis/3. Unwohl.png";
+  if (score <= 60) return "/illustrations/emojis/4. Okay.png";
+  if (score <= 80) return "/illustrations/emojis/5. Gut.png";
+  return "/illustrations/emojis/6. Sehr gut.png";
 };
 
 const buttonClass =
@@ -81,24 +74,34 @@ export default function DashboardAnalyses() {
 
   const [openAnalysis, setOpenAnalysis] = useState(false);
   const [openBlocks, setOpenBlocks] = useState<Record<number, boolean>>({});
+  const [answers, setAnswers] = useState<Record<number, Record<number, number>>>({});
+
+  useEffect(() => {
+    const key = Object.keys(localStorage).find((k) =>
+      k.startsWith("analysis-answers-")
+    );
+
+    if (key) {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        setAnswers(JSON.parse(saved));
+      }
+    }
+  }, []);
 
   const toggleBlock = (index: number) => {
-    setOpenBlocks((prev) => ({ ...prev, [index]: !prev[index] }));
+    setOpenBlocks((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
   };
+
+  const answeredBlockIndexes = Object.keys(answers)
+    .map(Number)
+    .sort((a, b) => a - b);
 
   return (
     <div className="relative space-y-14 max-w-6xl mx-auto px-4 md:px-6 pb-32">
-
-      {/* USER ICON */}
-      <button
-        onClick={() => navigate("/dashboard/account")}
-        className="fixed top-20 md:top-6 right-4 md:right-6 z-40 w-11 h-11 flex items-center justify-center rounded-full bg-white shadow hover:bg-[#1b1f23] hover:text-white transition"
-      >
-        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="9" cy="6" r="3" />
-          <path d="M3 16c0-3 12-3 12 0" />
-        </svg>
-      </button>
 
       {/* HEADER */}
       <div className="space-y-3">
@@ -145,29 +148,102 @@ export default function DashboardAnalyses() {
             exit={{ opacity: 0 }}
             className="space-y-4"
           >
-            {BLOCKS.map((block, i) => (
-              <div key={i} className="rounded-xl bg-[#b7dedc] p-5">
-                <button
-                  onClick={() => toggleBlock(i)}
-                  className="w-full flex justify-between items-center"
-                >
-                  <h4 className="text-lg font-semibold">{block.title}</h4>
+            {answeredBlockIndexes.map((i) => {
+              const block = businessBlocks[i];
+              const blockAnswers = answers[i] || {};
 
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium text-black ${scoreColor(
-                        block.score
-                      )}`}
-                    >
-                      {block.score}%
-                    </span>
-                    <ChevronDown
-                      className={`transition ${openBlocks[i] ? "rotate-180" : ""}`}
-                    />
-                  </div>
-                </button>
-              </div>
-            ))}
+              const values = Object.values(blockAnswers).filter(
+                (v): v is number => typeof v === "number"
+              );
+
+              const avg =
+                values.length > 0
+                  ? Math.round(
+                      values.reduce((sum, value) => sum + value, 0) /
+                        values.length
+                    )
+                  : 0;
+
+              return (
+                <div key={i} className="rounded-xl bg-[#b7dedc] p-5">
+
+                  {/* BLOCK HEADER */}
+                  <button
+                    onClick={() => toggleBlock(i)}
+                    className="w-full text-left"
+                  >
+                    <div className="flex justify-between items-start">
+
+                      {/* Titel */}
+                      <div className="max-w-[70%]">
+                        <h4 className="text-lg font-semibold leading-snug break-words">
+                          {block.title}
+                        </h4>
+                      </div>
+
+                      {/* Prozent + Chevron */}
+                      <div className="flex flex-col items-end gap-2">
+
+                        <div className="flex items-center gap-2 px-4 py-1 rounded-full bg-[#1b1f23] text-white text-sm font-medium min-w-[95px] justify-center">
+                          <img
+                            src={getEmojiSrc(avg)}
+                            alt="Score"
+                            className="w-4 h-4"
+                          />
+                          <span>{avg}%</span>
+                        </div>
+
+                        <ChevronDown
+                          className={`transition ${
+                            openBlocks[i] ? "rotate-180" : ""
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* DETAILBEREICH */}
+                  <AnimatePresence>
+                    {openBlocks[i] && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-6 space-y-4"
+                      >
+                        {block.questions.map((question, qIndex) => {
+                          const value = blockAnswers[qIndex];
+                          if (typeof value !== "number") return null;
+
+                          return (
+                            <div
+                              key={qIndex}
+                              className="bg-white/60 rounded-xl p-4 flex justify-between items-center"
+                            >
+                              <div className="text-sm text-[#1b1f23]">
+                                <span className="font-medium">
+                                  {qIndex + 1}.
+                                </span>{" "}
+                                {question.text}
+                              </div>
+
+                              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#1b1f23] text-white text-sm">
+                                <img
+                                  src={getEmojiSrc(value)}
+                                  className="w-4 h-4"
+                                />
+                                <span>{value}%</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                </div>
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>
@@ -179,7 +255,7 @@ export default function DashboardAnalyses() {
         Team-Analysen (–50 % Treuerabatt)
       </p>
 
-      {ANALYSES.filter(a => a.id !== "business-mii").map((analysis) => (
+      {ANALYSES.filter((a) => a.id !== "business-mii").map((analysis) => (
         <div
           key={analysis.id}
           className="rounded-2xl p-6 flex flex-col md:flex-row md:justify-between md:items-center gap-5 border shadow-sm bg-white"
@@ -189,7 +265,6 @@ export default function DashboardAnalyses() {
             <div>
               <h3 className="font-medium">{analysis.title}</h3>
               <p className="text-sm text-gray-600">{analysis.description}</p>
-
               <p className="text-sm text-red-500 mt-1">
                 <span className="line-through mr-2 opacity-70">
                   {analysis.price}
@@ -215,17 +290,14 @@ export default function DashboardAnalyses() {
         </div>
       ))}
 
-      {/* MAIL ICON */}
+      {/* MAIL BUTTON */}
       <a
         href="mailto:info@reportmii.com"
-        className="fixed bottom-6 right-6 z-50
-                   w-14 h-14 rounded-full
-                   bg-[#1b1f23] text-white
-                   flex items-center justify-center
-                   shadow-lg hover:-translate-y-0.5 transition"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[#1b1f23] text-white flex items-center justify-center shadow-lg hover:-translate-y-0.5 transition"
       >
         <Mail size={22} />
       </a>
+
     </div>
   );
 }

@@ -205,18 +205,34 @@ export default function AnalysisBlocks() {
               </div>
             </div>
 
-            {hasFreeSlot ? (
-              <div
-                onClick={() => toggleBlock(block)}
-                className="w-11 h-6 rounded-full bg-[#7eb6b8] relative cursor-pointer"
-              >
-                <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full" />
-              </div>
-            ) : (
-              <Button variant="primary" onClick={() => toggleBlock(block)}>
-                <Plus size={16} className="mr-1" /> 39 €
-              </Button>
-            )}
+           <div className="w-[110px] flex justify-end">
+  {hasFreeSlot ? (
+    <div
+      onClick={() => toggleBlock(block)}
+      className="w-11 h-6 rounded-full bg-[#7eb6b8] relative cursor-pointer"
+    >
+      <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full" />
+    </div>
+  ) : (
+  <div
+  onClick={() => toggleBlock(block)}
+  className="
+    w-[88px]
+    h-[44px]
+    bg-[#7eb6b8]
+    rounded-2xl
+    flex
+    items-center
+    justify-center
+    gap-1
+    cursor-pointer
+    select-none
+  "
+>
+  <span className="text-sm font-medium leading-none">+39 €</span>
+</div>
+  )}
+</div>
           </motion.div>
         ))}
       </div>

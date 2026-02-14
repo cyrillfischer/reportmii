@@ -184,6 +184,21 @@ export default function App() {
         path="/analysis/:analysisId/step/2"
         element={<ProtectedRoute><DashboardLayout><AnalysisLayout step={2}><AnalysisBlocks /></AnalysisLayout></DashboardLayout></ProtectedRoute>}
       />
+
+{/* 🧠 Analyse – Step 2 Alias (NEU, Architektur-FIX) */}
+<Route
+  path="/analysis/:analysisId/blocks"
+  element={
+    <ProtectedRoute>
+      <DashboardLayout>
+        <AnalysisLayout step={2}>
+          <AnalysisBlocks />
+        </AnalysisLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
+  }
+/>
+
   <Route
   path="/analysis/:analysisId/step/3"
   element={

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 import { Button } from "../../components/Button";
-import { businessBlocks, Question } from "../../data/blockTemplates";
+import { businessBlocks } from "../../data/blockTemplates";
 
 /* -------------------------------------------------- */
 /* Helpers */
@@ -174,7 +174,7 @@ export default function AnalysisStep3() {
   };
 
   return (
-    <motion.div className="rounded-[28px] bg-white border shadow p-10">
+    <motion.div className="rounded-[28px] bg-white border shadow p-6 sm:p-10 max-w-5xl mx-auto">
       <h2 className="text-2xl font-semibold">Fragen beantworten</h2>
 
       <div className="mt-8 space-y-6">
@@ -195,14 +195,14 @@ export default function AnalysisStep3() {
             >
               <button
                 onClick={() => setOpenBlock(isOpen ? null : bIndex)}
-                className="w-full px-6 py-5 flex justify-between items-center text-left"
+                className="w-full px-6 py-5 flex flex-col sm:flex-row sm:justify-between sm:items-center text-left gap-4"
               >
                 <div>
                   <h3 className="font-semibold">{block.title}</h3>
                   <p className="text-sm text-gray-500">{block.description}</p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 sm:justify-end">
                   {completed && (
                     <span className="px-3 py-1 text-xs rounded-full bg-[#7eb6b8] text-white">
                       abgeschlossen
@@ -275,19 +275,22 @@ export default function AnalysisStep3() {
       </div>
 
       {/* Global Footer */}
-      <div className="mt-10 flex items-center justify-between">
-        <p className="text-sm text-gray-600">
-          Du hast aktuell <strong>{progressPercent}%</strong> der Fragen
-          beantwortet. Sobald du 100% erreicht hast, geht es weiter.
+      <div className="mt-12 border-t pt-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-gray-600 max-w-xl">
+          Du hast aktuell <strong>{progressPercent}%</strong> der Fragen beantwortet.
+          Sobald du 100% erreicht hast, geht es weiter.
         </p>
 
         <Button
           variant="primary"
           disabled={!allCompleted}
-          className={!allCompleted ? "cursor-not-allowed opacity-60" : ""}
+          className={`${
+            !allCompleted ? "cursor-not-allowed opacity-60" : ""
+          } w-full sm:w-auto h-12 px-8 rounded-2xl inline-flex items-center justify-center gap-2 whitespace-nowrap`}
           onClick={() => navigate(`/analysis/${analysisId}/step/4`)}
         >
-          Gesamt weiter →
+          <span>Gesamt weiter</span>
+          <span aria-hidden>→</span>
         </Button>
       </div>
     </motion.div>

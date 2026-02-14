@@ -5,6 +5,11 @@ import { Button } from "../../components/Button";
 export default function AnalysisSuccess() {
   const navigate = useNavigate();
 
+  const goToDashboard = () => {
+    // 🔥 Direkt ins Business-Dashboard (kein Redirect mehr)
+    navigate("/dashboard/business", { replace: true });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -41,7 +46,7 @@ export default function AnalysisSuccess() {
         <Button
           variant="primary"
           className="h-12 px-10 rounded-2xl"
-          onClick={() => navigate("/dashboard/analyses")}
+          onClick={goToDashboard}
         >
           Zum Dashboard →
         </Button>

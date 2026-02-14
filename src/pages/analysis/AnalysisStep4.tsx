@@ -91,24 +91,25 @@ export default function AnalysisStep4() {
       </div>
 
       {/* Footer */}
-      <div className="mt-10 flex items-center justify-between">
-        <Button
-          variant="secondary"
-          className="h-12 px-6 rounded-2xl"
-          onClick={() => navigate(`/analysis/${analysisId}/step/3`)}
-        >
-          ← Zurück
-        </Button>
+      <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <Button
+    variant="secondary"
+    className="h-12 w-full sm:w-auto px-6 rounded-2xl"
+    onClick={() => navigate(`/analysis/${analysisId}/step/3`)}
+  >
+    ← Zurück
+  </Button>
 
-        <Button
-          variant="primary"
-          className="h-12 px-8 rounded-2xl"
-          disabled={!selectedDesign}
-          onClick={goNext}
-        >
-          Weiter zum Abschließen →
-        </Button>
-      </div>
+  <Button
+  variant="primary"
+  className="h-12 w-full sm:w-auto px-8 rounded-2xl flex items-center justify-center gap-2 whitespace-nowrap"
+  disabled={!selectedDesign}
+  onClick={goNext}
+>
+  <span>Weiter zum Abschliessen</span>
+  <span>→</span>
+</Button>
+</div>
     </motion.div>
   );
 }

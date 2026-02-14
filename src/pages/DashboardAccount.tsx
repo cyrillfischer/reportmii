@@ -65,9 +65,8 @@ export default function DashboardAccount() {
 
   return (
     <div className="min-h-screen bg-[#f7faf9]">
-      <div className="w-full max-w-6xl mx-auto px-6 py-14">
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-14">
 
-        {/* HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -83,41 +82,71 @@ export default function DashboardAccount() {
           </p>
         </motion.div>
 
-        {/* CARD */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="bg-white rounded-3xl shadow-xl border border-gray-200 p-8 md:p-12"
+          className="
+            bg-white rounded-3xl shadow-xl border border-gray-200
+            p-6 sm:p-8 md:p-12
+          "
         >
-          {/* LOGO */}
-          <div className="flex flex-col items-center mb-12">
-            <div className="
-              w-32 h-32 rounded-full bg-gray-50 border border-gray-200
-              flex items-center justify-center overflow-hidden
-              transition
-              hover:ring-4 hover:ring-[#7eb6b8]/30
-            ">
+          <div className="flex flex-col items-center mb-12 px-2 sm:px-0">
+
+            <div
+              className="
+                w-28 h-28 sm:w-32 sm:h-32
+                rounded-full bg-gray-50 border border-gray-200
+                flex items-center justify-center overflow-hidden
+                transition
+                hover:ring-4 hover:ring-[#7eb6b8]/30
+                relative
+              "
+            >
               {logo ? (
-                <img src={logo} className="w-full h-full object-cover" />
+                <img
+                  src={logo}
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <Upload size={28} className="text-gray-400" />
               )}
             </div>
 
-            <label className="mt-4 text-sm font-medium text-[#7eb6b8] cursor-pointer hover:underline">
+            <label
+              className="
+                mt-4 text-sm font-medium text-[#7eb6b8]
+                cursor-pointer hover:underline
+                text-center max-w-full break-words
+                relative
+              "
+            >
               Profilbild oder Firmenlogo hochladen
-              <input type="file" className="hidden" onChange={handleLogoUpload} />
+             <input
+  type="file"
+  className="absolute inset-0 opacity-0 cursor-pointer"
+  onChange={handleLogoUpload}
+/>
+
+<div className="w-full sm:relative">
+  <input
+    type="file"
+    className="absolute inset-0 opacity-0 cursor-pointer"
+    onChange={handleLogoUpload}
+  />
+</div>
+
             </label>
 
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-1 text-center">
               PNG oder JPEG · idealerweise quadratisch
             </p>
           </div>
 
-          {/* FORM */}
-          <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
+          <form
+            onSubmit={handleSave}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8"
+          >
             <Input label="Vorname *" icon={<User size={16} />} value={firstName} onChange={setFirstName} />
             <Input label="Nachname *" icon={<User size={16} />} value={lastName} onChange={setLastName} />
 
@@ -126,7 +155,10 @@ export default function DashboardAccount() {
               <input
                 disabled
                 value={email}
-                className="w-full px-4 py-3 rounded-xl border bg-gray-100 text-gray-600 cursor-not-allowed"
+                className="
+                  w-full px-4 py-3 rounded-xl border
+                  bg-gray-100 text-gray-600 cursor-not-allowed
+                "
               />
             </div>
 
@@ -136,7 +168,7 @@ export default function DashboardAccount() {
 
             <div className="md:col-span-2">
               <Label icon={<Link2 size={16} />} text="Inside.mii Subdomain (optional)" />
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   value={subdomain}
                   onChange={(e) => setSubdomain(e.target.value)}
@@ -154,7 +186,6 @@ export default function DashboardAccount() {
               </div>
             </div>
 
-            {/* SAVE BUTTON */}
             <div className="md:col-span-2 mt-12 text-center">
               <button
                 type="submit"
@@ -173,7 +204,6 @@ export default function DashboardAccount() {
                 Änderungen speichern
               </button>
             </div>
-
           </form>
         </motion.div>
       </div>
@@ -181,7 +211,17 @@ export default function DashboardAccount() {
   );
 }
 
-/* ---------- Helpers ---------- */
+<style>
+{`
+  @media (max-width: 640px) {
+    input[type="file"] {
+      display: block;
+    }
+  }
+`}
+</style>
+
+
 
 function Label({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
