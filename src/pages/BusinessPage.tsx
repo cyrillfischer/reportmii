@@ -87,20 +87,24 @@ function ScrollFlipCard({ item, index }: { item: any; index: number }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.55 + index * 0.1 }}
-      className="relative w-full h-[240px] perspective-1000"
+      className="relative w-full h-[340px] sm:h-[300px] md:h-[240px] perspective-1000"
       style={{ perspective: '1000px' }}
     >
       <div
         className="relative w-full h-full transition-transform duration-700 ease-out"
         style={{
-          transformStyle: 'preserve-3d',
-          transform: `rotateY(${isFlipped ? 180 : 0}deg)`
-        }}
+  transformStyle: "preserve-3d",
+  WebkitTransformStyle: "preserve-3d",
+  transform: `rotateY(${isFlipped ? 180 : 0}deg)`,
+}}
       >
         {/* Front Side - Dark with Icon */}
         <div
           className="absolute inset-0 rounded-3xl bg-[#121619] border border-[#7eb6b8]/30 shadow-[0_12px_28px_rgba(0,0,0,0.35)] flex flex-col items-center justify-center"
-          style={{ backfaceVisibility: 'hidden' }}
+         style={{
+  backfaceVisibility: "hidden",
+  WebkitBackfaceVisibility: "hidden",
+}}
         >
           <img
             src={item.img}
@@ -113,9 +117,10 @@ function ScrollFlipCard({ item, index }: { item: any; index: number }) {
         <div
           className="absolute inset-0 rounded-3xl p-6 md:p-8 bg-[#7eb6b8] text-black border border-white/10 shadow-[0_12px_28px_rgba(0,0,0,0.35)] flex flex-col items-center md:items-start justify-center md:justify-start text-center md:text-left"
           style={{
-            backfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)'
-          }}
+  backfaceVisibility: "hidden",
+  WebkitBackfaceVisibility: "hidden",
+  transform: "rotateY(180deg)",
+}}
         >
          <img
   src={item.img}
