@@ -117,11 +117,11 @@ function ScrollFlipCard({ item, index }: { item: any; index: number }) {
             transform: 'rotateY(180deg)'
           }}
         >
-          <img
-            src={item.img}
-            className="w-[80px] h-[80px] md:w-[105px] md:h-[105px] mb-3 md:mb-0 md:absolute md:bottom-4 md:right-4 z-10"
-            alt={item.title}
-          />
+         <img
+  src={item.img}
+  className="w-[80px] h-[80px] md:w-[105px] md:h-[105px] mb-3 md:mb-0 md:absolute md:bottom-4 md:right-4 z-10"
+  alt={item.title}
+/>
           <h3 className="text-xl md:text-2xl font-semibold mb-2">{item.title}</h3>
           <p className="text-black/80 leading-relaxed text-sm md:text-base">{item.text}</p>
         </div>
