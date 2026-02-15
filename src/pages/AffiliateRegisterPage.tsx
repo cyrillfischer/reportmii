@@ -190,14 +190,15 @@ export function AffiliateRegisterPage() {
             />
 
             {/* TERMS */}
-            <label className="flex items-start gap-2 mb-6 text-sm text-gray-700 leading-snug">
+           <label className="flex flex-wrap items-start gap-3 mb-6 text-sm text-gray-700 leading-snug">
+
               <input
                 type="checkbox"
                 name="acceptedTerms"
                 checked={formData.acceptedTerms}
                 onChange={handleChange}
                 required
-                className="mt-1"
+                className="mt-1 w-5 h-5"
               />
               Ich akzeptiere die Partnerbedingungen & Datenschutzrichtlinien.
             </label>
