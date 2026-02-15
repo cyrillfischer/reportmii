@@ -150,11 +150,12 @@ export function LandingPage() {
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="
-          text-3xl sm:text-5xl md:text-6xl lg:text-7xl
-font-semibold tracking-tight text-gray-900
-leading-[1.15] break-words
-        "
+       className="
+  text-4xl sm:text-5xl md:text-6xl lg:text-7xl
+  font-semibold tracking-tight text-gray-900
+  leading-[1.15]
+  min-h-[4.8em] sm:min-h-0
+"
       >
         Die schnellste<br />
         <span className="text-[#50969a]">Unternehmensanalyse</span><br />
