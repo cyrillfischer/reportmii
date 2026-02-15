@@ -1058,16 +1058,11 @@ hover:bg-[#1b1f23] hover:text-white transition"
         whileHover={{ scale: 1.04 }}
         animate={{ scale: [1, 1.05, 1], opacity: [1, 0.9, 1] }}
         transition={{ duration: 1.8, repeat: Infinity }}
-        className="px-6 md:px-10
-  py-3 md:py-4
-  text-base md:text-lg
-  rounded-full
-  bg-[#7eb6b8] text-black font-semibold
-  shadow-[0_0_25px_rgba(126,182,184,0.35)]
-  hover:bg-[#1b1f23] hover:text-white
-  transition
-  w-full sm:w-auto
-  max-w-[420px]"
+        className="px-10 py-4 rounded-full
+    bg-[#7eb6b8] text-black font-semibold text-lg
+    shadow-[0_0_25px_rgba(126,182,184,0.35)]
+    hover:bg-[#1b1f23] hover:text-white transition
+    whitespace-nowrap"
       >
         Jetzt Business.mii starten – 497 €
       </motion.button>
