@@ -76,18 +76,18 @@ export default function DashboardAnalyses() {
   const [openBlocks, setOpenBlocks] = useState<Record<number, boolean>>({});
   const [answers, setAnswers] = useState<Record<number, Record<number, number>>>({});
 
-  useEffect(() => {
-    const key = Object.keys(localStorage).find((k) =>
-      k.startsWith("analysis-answers-")
-    );
+ useEffect(() => {
+  try {
+    const stored = localStorage.getItem("analysis-answers");
 
-    if (key) {
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        setAnswers(JSON.parse(saved));
-      }
+    if (stored) {
+      setAnswers(JSON.parse(stored));
     }
-  }, []);
+  } catch (e) {
+    console.warn("LocalStorage not accessible");
+  }
+}, []);
+
 
   const toggleBlock = (index: number) => {
     setOpenBlocks((prev) => ({
