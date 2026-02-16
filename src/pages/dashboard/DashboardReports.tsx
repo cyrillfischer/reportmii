@@ -64,8 +64,8 @@ export default function DashboardReports() {
         .select("id, type, status, pdf_url, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+       .limit(1)
+.maybeSingle()
 
       if (data) {
         setAnalysis(data);

@@ -47,7 +47,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
+.maybeSingle()
 
       if (error || !data) return;
 
