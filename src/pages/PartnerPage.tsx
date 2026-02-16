@@ -746,6 +746,7 @@ export default function PartnerPage() {
     <motion.h2
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-center text-white mb-16"
     >
@@ -1080,6 +1081,7 @@ export default function PartnerPage() {
     <motion.h2
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.45 }}
       className="text-4xl md:text-5xl font-semibold leading-tight text-white"
     >
@@ -1089,6 +1091,7 @@ export default function PartnerPage() {
     <motion.p
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.45, delay: 0.1 }}
       className="mt-6 text-gray-300 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
     >
@@ -1098,6 +1101,7 @@ export default function PartnerPage() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.55, delay: 0.2 }}
       className="mt-14 flex justify-center"
     >
@@ -1117,6 +1121,7 @@ export default function PartnerPage() {
     <motion.div
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.65, delay: 0.25 }}
       className="mt-16 flex justify-center"
     >

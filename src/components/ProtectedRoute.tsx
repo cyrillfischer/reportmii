@@ -10,7 +10,7 @@ if (loading) {
 }
 
   if (!user) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return <Navigate to="/" replace />;
   }
 
   return children;

@@ -252,6 +252,7 @@ export default function BusinessPage() {
     <motion.h2
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-center text-white"
     >
@@ -261,6 +262,7 @@ export default function BusinessPage() {
     <motion.p
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.7 }}
       className="mt-4 text-gray-300 text-lg max-w-2xl mx-auto text-center leading-relaxed"
     >
@@ -326,6 +328,7 @@ export default function BusinessPage() {
     <motion.h2
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-gray-900"
     >
@@ -335,6 +338,7 @@ export default function BusinessPage() {
     <motion.p
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.7 }}
       className="mt-4 text-gray-600 max-w-2xl mx-auto leading-relaxed text-lg"
     >
@@ -422,6 +426,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
     <motion.h2
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-center text-black"
     >
@@ -457,6 +462,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
           key={i}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.55 + i * 0.1 }}
           className="
             bg-[#1b1f23]
@@ -503,6 +509,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
     <motion.h2
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-gray-900"
     >
@@ -521,6 +528,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
           key={i}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.5 + i * 0.1 }}
           className="p-8 bg-[#f5fbfb] rounded-3xl border border-gray-200 shadow-[0_12px_28px_rgba(0,0,0,0.06)]"
         >
@@ -551,6 +559,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
     <motion.h2
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-center text-gray-900"
     >
@@ -581,6 +590,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
             key={i}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.5 + i * 0.1 }}
             className="bg-[#1b1f23] p-10 rounded-3xl border border-white/10
                        shadow-[0_18px_40px_rgba(0,0,0,0.45)]"
@@ -596,6 +606,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.6 }}
         className="bg-[#f0f7f7] rounded-3xl p-10 shadow-[0_25px_60px_rgba(0,0,0,0.10)]
                    border border-gray-200 flex flex-col items-center h-full"
@@ -628,6 +639,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: "80%" }}
+                viewport={{ once: true }}
                 transition={{ duration: 1 }}
                 className="h-full bg-[#7eb6b8]"
               />
@@ -642,6 +654,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: "70%" }}
+                viewport={{ once: true }}
                 transition={{ duration: 1 }}
                 className="h-full bg-[#7eb6b8]"
               />
@@ -656,6 +669,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: "75%" }}
+                viewport={{ once: true }}
                 transition={{ duration: 1 }}
                 className="h-full bg-[#7eb6b8]"
               />
@@ -706,6 +720,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
     <motion.h2
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-center text-white mb-16"
     >
@@ -971,6 +986,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
     <motion.h2
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.5 }}
       className="text-3xl md:text-4xl font-semibold text-gray-900 text-center"
     >
@@ -993,6 +1009,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
           key={i}
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.4 + i * 0.1 }}
           className="group border border-gray-200 rounded-2xl bg-white px-6 py-5 shadow-[0_8px_25px_rgba(0,0,0,0.04)]"
         >
@@ -1029,6 +1046,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
     <motion.h2
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.45 }}
       className="text-4xl md:text-5xl font-semibold leading-tight text-white"
     >
@@ -1039,6 +1057,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
     <motion.p
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.45, delay: 0.1 }}
       className="mt-6 text-gray-300 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
     >
@@ -1050,6 +1069,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.55, delay: 0.2 }}
       className="mt-14 flex justify-center"
     >
@@ -1072,6 +1092,7 @@ hover:bg-[#1b1f23] hover:text-white transition"
     <motion.div
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.65, delay: 0.25 }}
       className="mt-16 flex justify-center"
     >

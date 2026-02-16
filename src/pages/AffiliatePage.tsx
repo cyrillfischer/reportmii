@@ -528,6 +528,7 @@ export default function AffiliatePage() {
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
             className="text-4xl md:text-5xl font-semibold text-center text-white mb-16"
           >

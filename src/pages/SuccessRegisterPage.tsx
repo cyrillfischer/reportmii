@@ -40,6 +40,7 @@ export default function SuccessRegisterPage() {
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.5 }}
             className="text-3xl md:text-4xl font-semibold mb-14"
           >
@@ -52,6 +53,7 @@ export default function SuccessRegisterPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ delay: 0.05 }}
               className="flex gap-4 bg-white p-8 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition"
             >
@@ -65,6 +67,7 @@ export default function SuccessRegisterPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ delay: 0.15 }}
               className="flex gap-4 bg-white p-8 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition"
             >

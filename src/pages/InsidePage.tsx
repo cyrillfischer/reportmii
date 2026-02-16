@@ -366,6 +366,7 @@ export default function InsidePage() {
     <motion.h2
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-center text-black"
     >
@@ -402,6 +403,7 @@ export default function InsidePage() {
           key={i}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.55 + i * 0.1 }}
           className="
             bg-[#1b1f23]
@@ -457,6 +459,7 @@ export default function InsidePage() {
     <motion.h2
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-gray-900"
     >
@@ -467,6 +470,7 @@ export default function InsidePage() {
     <motion.p
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6, delay: 0.1 }}
       className="text-gray-600 text-lg max-w-2xl mx-auto mt-4 leading-relaxed"
     >
@@ -528,6 +532,7 @@ export default function InsidePage() {
           alt="Inside Icon"
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.45 }}
           className="w-28 mb-7 drop-shadow-[0_8px_18px_rgba(0,0,0,0.25)] mx-auto lg:mx-0"
         />
@@ -535,6 +540,7 @@ export default function InsidePage() {
         <motion.h2
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.55 }}
           className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6"
         >
@@ -545,6 +551,7 @@ export default function InsidePage() {
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.55, delay: 0.1 }}
           className="text-lg text-gray-700 leading-relaxed"
         >
@@ -564,6 +571,7 @@ export default function InsidePage() {
       <motion.div
         initial={{ opacity: 0, y: 25, scale: 0.96 }}
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.1 }}
         className="relative p-8 bg-[#101417] rounded-3xl border border-[#222c33]
                    shadow-xl w-[80%] mx-auto"
@@ -602,6 +610,7 @@ export default function InsidePage() {
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: `${value}%` }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: idx * 0.15 }}
                 className="h-1.5 rounded-full bg-[#7eb6b8]"
               />
@@ -742,6 +751,7 @@ export default function InsidePage() {
     <motion.h2
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-center text-white mb-16"
     >
@@ -1007,6 +1017,7 @@ export default function InsidePage() {
     <motion.h2
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.5 }}
       className="text-3xl md:text-4xl font-semibold text-gray-900 text-center"
     >
@@ -1084,6 +1095,7 @@ export default function InsidePage() {
     <motion.h2
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.45 }}
       className="text-4xl md:text-5xl font-semibold leading-tight text-white"
     >
@@ -1093,6 +1105,7 @@ export default function InsidePage() {
     <motion.p
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.45, delay: 0.1 }}
       className="mt-6 text-gray-300 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
     >
@@ -1103,6 +1116,7 @@ export default function InsidePage() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.55, delay: 0.2 }}
       className="mt-14 flex justify-center"
     >
@@ -1122,6 +1136,7 @@ export default function InsidePage() {
     <motion.div
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.65, delay: 0.25 }}
       className="mt-16 flex justify-center"
     >

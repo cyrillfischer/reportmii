@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   FileText,
@@ -24,9 +24,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   /* ANALYSIS / REPORT STATUS (FINAL – SUPABASE)                         */
   /* ------------------------------------------------------------------ */
 
+  const navigate = useNavigate();
+
   const [latestAnalysisId, setLatestAnalysisId] = useState<string | null>(null);
-  const [analysisStatus, setAnalysisStatus] =
-    useState<AnalysisStatus>(null);
+  const [analysisStatus, setAnalysisStatus] = useState<AnalysisStatus>(null);
   const [hideReportDot, setHideReportDot] = useState(true);
 
   /* ---------------- MOBILE MENU ---------------- */
@@ -67,11 +68,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleReportsClick = () => {
     if (latestAnalysisId) {
-      localStorage.setItem(
-        "reports_seen_analysis_id",
-        latestAnalysisId
-      );
+      localStorage.setItem("reports_seen_analysis_id", latestAnalysisId);
       setHideReportDot(true);
+    }
+  };
+
+  // ✅ LOGOUT (NEU, OHNE SONST ETWAS ZU ÄNDERN)
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      setMobileMenuOpen(false);
+      navigate("/", { replace: true });
     }
   };
 
@@ -226,7 +234,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         <div className="flex-1" />
 
-        <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-300 hover:bg-[#e6f7f6] hover:text-[#1b1f23] transition">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-300 hover:bg-[#e6f7f6] hover:text-[#1b1f23] transition"
+        >
           <LogOut size={18} />
           Logout
         </button>

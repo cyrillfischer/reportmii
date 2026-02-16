@@ -149,6 +149,7 @@ export function LandingPage() {
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.6 }}
        className="
   text-4xl sm:text-5xl md:text-6xl lg:text-7xl
@@ -170,6 +171,7 @@ export function LandingPage() {
      <motion.p
   initial={{ opacity: 0, y: 20 }}
   whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
   transition={{ duration: 0.8 }}
   className="
     mt-6 sm:mt-8
@@ -187,6 +189,7 @@ export function LandingPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
         transition={{ duration: 1 }}
         className="
           mt-10 sm:mt-12 
@@ -217,6 +220,7 @@ export function LandingPage() {
     <motion.div
       initial={{ opacity: 0, y: 40, scale: 0.9 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.9 }}
       className="flex justify-center lg:justify-end"
     >
@@ -246,12 +250,14 @@ export function LandingPage() {
   <motion.div
     initial={{ opacity: 0 }}
     whileInView={{ opacity: 1 }}
+    viewport={{ once: true }}
     transition={{ duration: 1.2 }}
     className="absolute inset-0 pointer-events-none"
   >
     <motion.div
       initial={{ y: 40 }}
       whileInView={{ y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 2 }}
       className="absolute left-1/2 lg:left-10 bottom-0 -translate-x-1/2 lg:translate-x-0 
                  w-[420px] h-[420px] bg-[#7eb6b8] opacity-[0.12] blur-[140px]"
@@ -270,6 +276,7 @@ export function LandingPage() {
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.7 }}
         className="flex justify-center lg:justify-start"
       >
@@ -300,6 +307,7 @@ export function LandingPage() {
               key={idx}
               initial={{ opacity: 0, x: -15 }}
               whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.5 + idx * 0.1 }}
               className="flex items-center gap-5"
             >
@@ -323,6 +331,7 @@ export function LandingPage() {
 <motion.div
   initial={{ opacity: 0, y: 25 }}
   whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
   transition={{ duration: 0.65 }}
   className="mt-16 sm:mt-20 text-center lg:text-left max-w-2xl mx-auto lg:mx-0"
 >
@@ -360,6 +369,7 @@ export function LandingPage() {
           key={i}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.55 + i * 0.08 }}
           className="
             p-6 bg-white/5 backdrop-blur rounded-2xl 
@@ -392,6 +402,7 @@ export function LandingPage() {
   <motion.h2
     initial={{ opacity: 0, y: 15 }}
     whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
     transition={{ duration: 0.5 }}
     className="text-4xl md:text-5xl font-semibold text-center text-gray-900"
   >
@@ -401,6 +412,7 @@ export function LandingPage() {
   <motion.p
   initial={{ opacity: 0 }}
   whileInView={{ opacity: 1 }}
+  viewport={{ once: true }}
   transition={{ duration: 0.6 }}
   className="mt-4 text-gray-600 text-lg max-w-xl mx-auto text-center leading-relaxed"
 >
@@ -435,6 +447,7 @@ export function LandingPage() {
       key={i}
       initial={{ opacity: 0, y: 35 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.55 + i * 0.1 }}
       className="
         p-10 rounded-3xl 
@@ -484,6 +497,7 @@ export function LandingPage() {
     <motion.h2
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.5 }}
       className="text-4xl md:text-5xl font-semibold text-center text-black leading-tight"
     >
@@ -508,6 +522,7 @@ export function LandingPage() {
             key={i}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.45 + i * 0.05 }}
             className="p-6 bg-[#0f1418] rounded-3xl border border-white/10 shadow-[0_18px_45px_rgba(0,0,0,0.45)] min-h-[130px] flex items-center"
           >
@@ -521,6 +536,7 @@ export function LandingPage() {
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.6 }}
         className="flex flex-col items-center text-center max-w-xl"
       >
@@ -534,6 +550,7 @@ export function LandingPage() {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.1 }}
             className="text-black text-2xl font-semibold leading-snug"
           >
@@ -543,6 +560,7 @@ export function LandingPage() {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.25 }}
             className="text-black text-2xl font-semibold leading-snug"
           >
@@ -552,6 +570,7 @@ export function LandingPage() {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.4 }}
             className="text-black/80 text-base leading-relaxed"
           >
@@ -562,6 +581,7 @@ export function LandingPage() {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.55 }}
             className="text-black/80 text-base leading-relaxed"
           >
@@ -573,6 +593,7 @@ export function LandingPage() {
         <motion.img
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.7 }}
           src="/illustrations/coreicon/7_core_icon_brain.png"
           className="w-48 h-48 mt-10 drop-shadow-[0_15px_35px_rgba(0,0,0,0.35)]"
@@ -605,6 +626,7 @@ export function LandingPage() {
     <motion.h2
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.5 }}
       className="text-4xl md:text-5xl font-semibold text-gray-900"
     >
@@ -635,6 +657,7 @@ export function LandingPage() {
           key={i}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.6 + i * 0.1 }}
           className="
             p-12 bg-white rounded-3xl border border-gray-200
@@ -691,6 +714,7 @@ export function LandingPage() {
     <motion.p
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-gray-600 mt-4 text-lg max-w-2xl mx-auto leading-relaxed"
     >
@@ -706,6 +730,7 @@ export function LandingPage() {
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.6 }}
         whileHover={{
           scale: 1.03,
@@ -757,6 +782,7 @@ export function LandingPage() {
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: `${value}%` }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: idx * 0.15 }}
                 className="h-2 rounded-full bg-[#7eb6b8]"
               />
@@ -781,6 +807,7 @@ export function LandingPage() {
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.1 }}
         whileHover={{
           scale: 1.03,
@@ -832,6 +859,7 @@ export function LandingPage() {
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: `${value}%` }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: idx * 0.15 }}
                 className="h-2 rounded-full bg-[#7eb6b8]"
               />
@@ -872,6 +900,7 @@ export function LandingPage() {
     <motion.h2
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
       className="text-4xl md:text-5xl font-semibold text-center text-white mb-16"
     >
@@ -1070,6 +1099,7 @@ export function LandingPage() {
     <motion.h2
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.5 }}
       className="text-3xl md:text-4xl font-semibold text-gray-900 text-center"
     >
@@ -1104,6 +1134,7 @@ export function LandingPage() {
           key={i}
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.4 + i * 0.1 }}
           className="group border border-gray-200 rounded-2xl bg-white px-6 py-5 shadow-[0_8px_25px_rgba(0,0,0,0.04)]"
         >

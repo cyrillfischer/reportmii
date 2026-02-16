@@ -32,7 +32,7 @@ if (profile.plan_affiliate_active) {
 }
 
     // Fallback
-    navigate("/dashboard/account", { replace: true });
+    navigate("/dashboard/business", { replace: true });
   }, [loading, profile, navigate]);
 
   return (
