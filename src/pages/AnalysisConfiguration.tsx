@@ -250,7 +250,7 @@ export function AnalysisConfiguration() {
         .from("profiles")
         .select("company, logo_url")
         .eq("id", user.id)
-        .single();
+       .maybeSingle();
 
       if (error || !data) return;
 

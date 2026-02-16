@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../supabase/supabaseClient";
+import { useAuth } from "./AuthContext";
 
 /* =========================
    TYPES
@@ -18,8 +19,7 @@ export type UserProfile = {
   plan_business_active?: boolean;
   plan_inside_active?: boolean;
   plan_partner_active?: boolean;
-plan_affiliate_active?: boolean;
-
+  plan_affiliate_active?: boolean;
 
   created_at?: string;
 };
@@ -45,40 +45,39 @@ const UserContext = createContext<UserContextType>({
 ========================= */
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading: authLoading } = useAuth(); // ✅ Zentrale Session-Quelle
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async () => {
-    setLoading(true);
-
-    // 1) Session holen (stabil für Localhost & Prod)
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    if (sessionError || !session?.user) {
+    if (!user) {
       setProfile(null);
       setLoading(false);
       return;
     }
 
-    const user = session.user;
+    setLoading(true);
 
-    // 2) Profil laden
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
-      .single();
+      .maybeSingle(); // ✅ KEIN 406 mehr in Safari
 
-    if (error || !data) {
+    if (error) {
+      console.error("Profile Load Error:", error);
       setProfile(null);
       setLoading(false);
       return;
     }
 
-    // 3) Profil setzen
+    if (!data) {
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
+
     setProfile({
       ...(data as UserProfile),
       email: data.email ?? user.email ?? "",
@@ -88,16 +87,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    loadProfile();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
+    if (!authLoading) {
       loadProfile();
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
+    }
+  }, [user, authLoading]);
 
   return (
     <UserContext.Provider
