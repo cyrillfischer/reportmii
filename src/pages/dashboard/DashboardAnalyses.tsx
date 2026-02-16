@@ -131,12 +131,12 @@ export default function DashboardAnalyses() {
           </div>
         </div>
 
-        <button
-          className={`${buttonClass} w-full md:w-44`}
-          onClick={() => setOpenAnalysis(!openAnalysis)}
-        >
-          Analyse anschauen
-        </button>
+       <button
+  className={`${buttonClass} w-full md:w-44`}
+  onClick={() => navigate("/dashboard/reports")}
+>
+  Analyse anschauen
+</button>
       </div>
 
       {/* BUSINESS DETAILS */}
